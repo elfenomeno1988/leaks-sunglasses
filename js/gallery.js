@@ -82,7 +82,7 @@ function renderViews() {
 
   if (viewsNode) {
     viewsNode.innerHTML = list.map((v, i) => `
-      <button type="button" class="gallery-view${i === currentViewIndex ? " is-active" : ""}" data-view="${i}" aria-label="Vue : ${v.label}" aria-pressed="${i === currentViewIndex}">
+      <button type="button" class="g-view${i === currentViewIndex ? " is-active" : ""}" data-view="${i}" aria-label="Vue : ${v.label}" aria-pressed="${i === currentViewIndex}">
         <img src="${v.src}" alt="">
         <em>${v.label}</em>
       </button>
@@ -122,7 +122,7 @@ function render() {
   swatchesNode.innerHTML = currentModel.colors.map((color) => {
     const active = color.variantId === currentVariant.variantId ? " is-active" : "";
     return `
-      <button type="button" class="gallery-swatch${active}" data-variant="${color.variantId}" aria-pressed="${color.variantId === currentVariant.variantId}">
+      <button type="button" class="g-swatch${active}" data-variant="${color.variantId}" aria-pressed="${color.variantId === currentVariant.variantId}">
         <img src="${color.image}" alt="">
         <span>
           <strong>${color.label}</strong>

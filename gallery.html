@@ -4,43 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Galerie — LEAKS Sunglasses</title>
-  <meta name="description" content="LEAKS Gallery. Un modèle, plusieurs coloris.">
+  <meta name="description" content="LEAKS — un modèle, ses coloris, toutes ses vues.">
   <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/site.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Michroma&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/epure.css">
 </head>
-<body class="gallery-page">
-  <header class="site-nav">
-    <a class="site-brand" href="/" aria-label="Retour à la grille LEAKS">
+<body>
+
+  <header class="nav">
+    <a class="nav-brand" href="/" aria-label="LEAKS — accueil">
       <img src="/assets/img/brand/logo-word.png" alt="LEAKS Sunglasses">
     </a>
-    <nav class="site-links" aria-label="Navigation principale">
+    <nav class="nav-links" aria-label="Navigation principale">
       <a href="/#collection">Collection</a>
-      <a href="/#contact">Contact</a>
-      <a href="/">Grille</a>
+      <a href="/campagne.html">Campagne</a>
+      <a href="/#drop">Le Drop</a>
     </nav>
-    <a class="btn btn-line btn-sm site-cta" data-wa-link href="https://wa.me/2250173891404" target="_blank" rel="noopener">RDV</a>
+    <a class="nav-cta" href="/#rendez-vous">Réserver</a>
   </header>
 
-  <main class="site-main gallery-main">
-    <section class="gallery-intro reveal">
-      <p class="kicker">Galerie</p>
-      <h1 data-gallery-title>Modèle</h1>
-      <p data-gallery-copy>Un modèle, plusieurs coloris.</p>
-    </section>
-
-    <section class="gallery-shell">
-      <figure class="gallery-visual reveal">
-        <span class="product-tag" data-gallery-view-tag>Vue de face</span>
+  <main class="wrap" style="padding-top:96px;padding-bottom:var(--section)">
+    <div class="g-shell">
+      <figure class="g-visual r in">
         <img data-gallery-image src="" alt="">
-        <div class="gallery-views" data-gallery-views role="group" aria-label="Vues du coloris"></div>
+        <div class="g-views" data-gallery-views role="group" aria-label="Vues du coloris"></div>
       </figure>
 
-      <aside class="gallery-panel reveal">
-        <dl class="gallery-details">
+      <aside class="g-panel r in">
+        <div>
+          <span class="tag" data-gallery-view-tag>Face</span>
+          <h1 data-gallery-title>Modèle</h1>
+          <p class="desc" data-gallery-copy>Un modèle, plusieurs coloris.</p>
+        </div>
+
+        <dl class="g-lines">
           <div><dt>Modèle</dt><dd data-gallery-model>—</dd></div>
           <div><dt>Coloris</dt><dd data-gallery-color>—</dd></div>
           <div><dt>Référence</dt><dd data-gallery-sku>—</dd></div>
@@ -48,20 +47,28 @@
         </dl>
 
         <div>
-          <p class="gallery-label">Coloris</p>
-          <div class="gallery-swatches" data-gallery-swatches></div>
+          <p class="tag" style="margin-bottom:12px">Coloris</p>
+          <div class="g-swatches" data-gallery-swatches></div>
         </div>
 
-        <div class="gallery-actions">
-          <a class="btn btn-dark" data-gallery-buy href="#">Acheter</a>
-          <a class="btn btn-line" data-gallery-rdv href="#" data-wa-link>RDV</a>
-          <a class="btn btn-line" href="/#collection">Retour à la grille</a>
+        <div class="g-actions">
+          <a class="btn btn-ink" data-gallery-buy href="#">Acheter</a>
+          <a class="btn btn-ghost" data-gallery-rdv href="#" data-wa-link>Essayer au studio</a>
         </div>
 
-        <p class="gallery-note">Même modèle. Autres coloris.</p>
+        <p class="tag"><a href="/#collection">← Toute la collection</a></p>
       </aside>
-    </section>
+    </div>
   </main>
+
+  <footer class="footer" style="margin-top:0">
+    <div class="wrap">
+      <div class="footer-bottom" style="margin-top:0;border-top:none">
+        <span>LEAKS Sunglasses — Drop 001</span>
+        <span>Édition 001 / ∞</span>
+      </div>
+    </div>
+  </footer>
 
   <script src="/js/catalog-data.js"></script>
   <script src="/js/gallery.js" type="module"></script>

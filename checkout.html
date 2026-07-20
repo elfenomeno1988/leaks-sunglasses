@@ -3,141 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finaliser la commande — LEAKS Sunglasses</title>
-  <meta name="description" content="LEAKS Checkout. Choisissez un coloris et validez le paiement.">
+  <title>Commande — LEAKS Sunglasses</title>
+  <meta name="description" content="LEAKS — commande en trois gestes. Coloris, coordonnées, paiement sécurisé.">
   <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/commerce.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Michroma&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/epure.css">
 </head>
-<body class="commerce-page">
-  <header class="commerce-nav">
-    <a href="/" class="commerce-brand" aria-label="Retour à LEAKS">
+<body>
+
+  <header class="nav">
+    <a class="nav-brand" href="/" aria-label="LEAKS — accueil">
       <img src="/assets/img/brand/logo-word.png" alt="LEAKS Sunglasses">
     </a>
-    <p>Paiement sécurisé · XOF</p>
-    <a href="/" class="commerce-back">← Continuer mes achats</a>
+    <span class="tag">Paiement sécurisé — XOF</span>
+    <a class="nav-cta" href="/#collection">← Continuer</a>
   </header>
 
-  <main class="checkout-shell">
-    <section class="checkout-main">
-      <div class="checkout-heading">
-        <p class="kicker">Commande directe</p>
-        <h1>Finaliser la commande.</h1>
-        <p>Choisissez un coloris, puis validez le paiement.</p>
-      </div>
+  <main class="wrap" style="padding-top:96px">
+    <div class="co-shell">
 
-      <form id="checkout-form" class="checkout-form" novalidate>
-        <fieldset class="checkout-block">
-          <legend><em>01</em> Votre coloris</legend>
-          <div class="checkout-fields two">
-            <label>Coloris
-              <select id="variant" name="variantId" required></select>
-            </label>
-            <label>Quantité
-              <select id="quantity" name="quantity">
-                <option value="1">1 paire</option>
-                <option value="2">2 paires</option>
-                <option value="3">3 paires</option>
-              </select>
-            </label>
-          </div>
-        </fieldset>
+      <section>
+        <header style="margin-bottom:clamp(24px,3vw,40px)">
+          <span class="tag">Commande — trois gestes</span>
+          <h1 style="font-size:clamp(26px,3vw,42px);font-weight:500;letter-spacing:-0.015em;margin-top:12px">
+            La paire, <em style="font-family:var(--serif);font-weight:400">puis plus rien.</em>
+          </h1>
+        </header>
 
-        <fieldset class="checkout-block">
-          <legend><em>02</em> Vos coordonnées</legend>
-          <div class="checkout-fields two">
-            <label>Prénom &amp; nom
-              <input name="customerName" type="text" autocomplete="name" placeholder="Awa Kouassi" required>
-            </label>
-            <label>Téléphone ivoirien
-              <span class="phone-field"><span>+225</span><input name="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="07 00 00 00 00" required></span>
-            </label>
-          </div>
-          <div class="checkout-fields">
-            <label>E-mail
-              <input name="customerEmail" type="email" autocomplete="email" placeholder="awa@example.com" required>
-            </label>
-          </div>
-        </fieldset>
+        <form id="checkout-form" novalidate>
 
-        <fieldset class="checkout-block">
-          <legend><em>03</em> Réception</legend>
-          <div class="delivery-options">
-            <label class="pay-choice">
-              <input type="radio" name="deliveryMethod" value="pickup" checked>
-              <span><strong>Retrait au studio</strong><small>Abidjan · gratuit</small></span>
-            </label>
-            <label class="pay-choice">
-              <input type="radio" name="deliveryMethod" value="abidjan_delivery">
-              <span><strong>Livraison à Abidjan</strong><small id="delivery-fee-label">Frais calculés</small></span>
-            </label>
-          </div>
-          <div class="checkout-fields" id="address-wrap" hidden>
-            <label>Adresse de livraison
-              <input name="deliveryAddress" type="text" autocomplete="street-address" placeholder="Commune, quartier, repère">
-            </label>
-          </div>
-          <div class="checkout-fields">
-            <label>Note <small>(optionnel)</small>
-              <textarea name="customerNote" rows="2" placeholder="Précision sur la livraison ou la commande…"></textarea>
-            </label>
-          </div>
-        </fieldset>
+          <fieldset class="co-step">
+            <legend><em>01</em>La paire</legend>
+            <div class="co-fields two">
+              <label>Coloris
+                <select id="variant" name="variantId" required></select>
+              </label>
+              <label>Quantité
+                <select id="quantity" name="quantity">
+                  <option value="1">1 paire</option>
+                  <option value="2">2 paires</option>
+                  <option value="3">3 paires</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
 
-        <fieldset class="checkout-block">
-          <legend><em>04</em> Paiement</legend>
-          <p class="checkout-intro">Paiement sécurisé via PayDunya.</p>
-          <div class="payment-options">
-            <label class="pay-choice featured">
-              <input type="radio" name="paymentMethod" value="wave" checked>
-              <span><strong>Wave</strong><small>Accès direct</small></span>
-              <b>Recommandé</b>
-            </label>
-            <label class="pay-choice">
-              <input type="radio" name="paymentMethod" value="mobile_money">
-              <span><strong>Mobile Money</strong><small>Orange · MTN · Moov · Djamo</small></span>
-            </label>
-            <label class="pay-choice">
-              <input type="radio" name="paymentMethod" value="card">
-              <span><strong>Carte</strong><small>Visa · Mastercard</small></span>
-            </label>
-            <label class="pay-choice whatsapp-choice">
-              <input type="radio" name="paymentMethod" value="whatsapp_wave">
-              <span><strong>WhatsApp</strong><small>Message prérempli</small></span>
-            </label>
-          </div>
-        </fieldset>
+          <fieldset class="co-step">
+            <legend><em>02</em>Vous</legend>
+            <div class="co-fields two">
+              <label>Prénom &amp; nom
+                <input name="customerName" type="text" autocomplete="name" placeholder="Awa Kouassi" required>
+              </label>
+              <label>Téléphone
+                <span class="phone-field"><span>+225</span><input name="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="07 00 00 00 00" required></span>
+              </label>
+            </div>
+            <div class="co-fields" style="margin-top:14px">
+              <label>E-mail
+                <input name="customerEmail" type="email" autocomplete="email" placeholder="awa@exemple.ci" required>
+              </label>
+            </div>
 
-        <div class="checkout-error" id="checkout-error" role="alert" hidden></div>
-        <button type="submit" class="btn btn-dark btn-xl checkout-submit" id="checkout-submit">
-          <span>Continuer vers le paiement</span><span id="submit-total">20 000 F CFA</span>
-        </button>
-        <p class="checkout-legal">Commande confirmée après paiement.</p>
-      </form>
-    </section>
+            <div class="co-options" style="margin-top:18px">
+              <label class="co-option">
+                <input type="radio" name="deliveryMethod" value="pickup" checked>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.6 4h12.8L20 9.5M4 9.5v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-10M4 9.5h16M9.5 20.5v-6h5v6"/></svg>
+                <span><strong>Retrait au studio</strong><small>Abidjan — offert</small></span>
+              </label>
+              <label class="co-option">
+                <input type="radio" name="deliveryMethod" value="abidjan_delivery">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6h11v11h-11zM13.5 10h4.2l3.3 3.6v3.4h-3M6.2 20a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8ZM16.6 20a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8ZM8.1 17h6.4"/></svg>
+                <span><strong>Livraison à Abidjan</strong><small id="delivery-fee-label">Frais calculés</small></span>
+              </label>
+            </div>
 
-    <aside class="order-card" aria-live="polite">
-      <div class="order-image"><img id="product-image" src="/assets/img/products/genesio/deep-brown/front.png" alt="Monture sélectionnée"></div>
-      <p class="kicker">Collection</p>
-      <h2 id="product-name">Genesio — LK-00</h2>
-      <p id="product-description">Carrée sculptée, contraste net et rendu studio.</p>
-      <dl class="order-lines">
-        <div><dt>Coloris</dt><dd id="summary-variant">Original</dd></div>
-        <div><dt>Quantité</dt><dd id="summary-quantity">1</dd></div>
-        <div><dt>Sous-total</dt><dd id="summary-subtotal">20 000 F</dd></div>
-        <div><dt>Livraison</dt><dd id="summary-delivery">Gratuite</dd></div>
-      </dl>
-      <div class="order-total"><span>Total</span><strong id="summary-total">20 000 F CFA</strong></div>
-      <ul class="trust-list">
-        <li>Paiement vérifié</li>
-        <li>Suivi instantané</li>
-        <li>WhatsApp LEAKS</li>
-      </ul>
-    </aside>
+            <div class="co-fields" id="address-wrap" style="margin-top:14px" hidden>
+              <label>Adresse de livraison
+                <input name="deliveryAddress" type="text" autocomplete="street-address" placeholder="Commune, quartier, repère">
+              </label>
+            </div>
+            <div class="co-fields" style="margin-top:14px">
+              <label>Note <small style="text-transform:none;letter-spacing:normal">(optionnel)</small>
+                <textarea name="customerNote" rows="2" placeholder="Une précision pour la livraison…"></textarea>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="co-step">
+            <legend><em>03</em>Le paiement</legend>
+            <div class="co-options">
+              <label class="co-option">
+                <input type="radio" name="paymentMethod" value="wave" checked>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 14.5c2.4-4.6 4.3-4.6 6.6 0s4.2 4.6 6.5 0 4.1-4.6 5.9 0"/></svg>
+                <span><strong>Wave</strong><small>Accès direct</small></span>
+                <b class="co-badge">Recommandé</b>
+              </label>
+              <label class="co-option">
+                <input type="radio" name="paymentMethod" value="mobile_money">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.8" width="10" height="18.4" rx="2"/><path d="M11 18.6h2"/></svg>
+                <span><strong>Mobile Money</strong><small>Orange · MTN · Moov · Djamo</small></span>
+              </label>
+              <label class="co-option">
+                <input type="radio" name="paymentMethod" value="card">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="1.6"/><path d="M2.5 10h19M6 14.6h4"/></svg>
+                <span><strong>Carte bancaire</strong><small>Visa · Mastercard</small></span>
+              </label>
+              <label class="co-option">
+                <input type="radio" name="paymentMethod" value="whatsapp_wave">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.6 13.8L3 21l4.4-1.3A9 9 0 1 0 12 3Z"/><path d="M8.8 9.2c.3 2.7 3.2 5.6 6 6l1.4-1.4-2-1.2-1 .7c-1-.5-1.9-1.4-2.4-2.4l.7-1-1.2-2Z"/></svg>
+                <span><strong>WhatsApp</strong><small>Commande par message</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="co-error" id="checkout-error" role="alert" hidden></div>
+
+          <button type="submit" class="btn btn-ink co-submit" id="checkout-submit">
+            <span>Continuer vers le paiement</span><span id="submit-total">20 000 F CFA</span>
+          </button>
+          <p class="co-legal">Commande confirmée après vérification du paiement.</p>
+        </form>
+      </section>
+
+      <aside class="co-card" aria-live="polite">
+        <div class="co-figure">
+          <img id="product-image" src="/assets/img/products/genesio/deep-brown/front.png" alt="Monture sélectionnée">
+        </div>
+        <span class="tag">Drop 001</span>
+        <h2 id="product-name">Genesio — LK-00</h2>
+        <p class="desc" id="product-description">Carrée sculptée, contraste net et rendu studio.</p>
+        <dl class="co-lines">
+          <div><dt>Coloris</dt><dd id="summary-variant">—</dd></div>
+          <div><dt>Quantité</dt><dd id="summary-quantity">1</dd></div>
+          <div><dt>Sous-total</dt><dd id="summary-subtotal">20 000 F</dd></div>
+          <div><dt>Livraison</dt><dd id="summary-delivery">Gratuite</dd></div>
+        </dl>
+        <div class="co-total"><span>Total</span><strong id="summary-total">20 000 F CFA</strong></div>
+        <ul class="co-trust">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="1.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>Paiement vérifié par le serveur</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 4.4 6v5.4c0 4.7 3.2 8.3 7.6 9.8 4.4-1.5 7.6-5.1 7.6-9.8V6Z"/></svg>Série numérotée — gravée dans la masse</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12h6l2-8 3 16 2-8h4"/></svg>Suivi privé instantané</li>
+        </ul>
+      </aside>
+
+    </div>
   </main>
+
+  <footer class="footer" style="margin-top:0">
+    <div class="wrap">
+      <div class="footer-bottom" style="margin-top:0;border-top:none">
+        <span>LEAKS Sunglasses — Drop 001</span>
+        <span>Paiement PayDunya</span>
+      </div>
+    </div>
+  </footer>
 
   <script src="/js/checkout.js" type="module"></script>
 </body>
