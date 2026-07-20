@@ -55,6 +55,31 @@ export async function adminRoutes(app, { db, auth }) {
     return { orders: orders.rows, total: count.rows[0].total, page, limit, stats: stats.rows[0] };
   });
 
+  app.get("/api/admin/bookings", { preHandler: auth.authenticate }, async (request) => {
+    const filters = [];
+    const params = [];
+    const push = (value) => { params.push(value); return `$${params.length}`; };
+    if (request.query.status) filters.push(`status=${push(request.query.status)}`);
+    if (request.query.date) filters.push(`booking_date=${push(request.query.date)}`);
+    const where = filters.length ? `where ${filters.join(" and ")}` : "";
+    const result = await db.query(
+      `select * from bookings ${where} order by booking_date asc, booking_time asc limit 200`,
+      params
+    );
+    return { bookings: result.rows };
+  });
+
+  app.patch("/api/admin/bookings/:reference", { preHandler: auth.authenticate }, async (request, reply) => {
+    const parsed = z.object({ status: z.enum(["pending", "confirmed", "honored", "cancelled"]) }).safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: "Mise à jour invalide." });
+    const result = await db.query(
+      `update bookings set status=$1 where reference=$2 returning *`,
+      [parsed.data.status, request.params.reference]
+    );
+    if (!result.rows[0]) return reply.code(404).send({ error: "Réservation introuvable." });
+    return { booking: result.rows[0] };
+  });
+
   app.patch("/api/admin/orders/:reference", { preHandler: auth.authenticate }, async (request, reply) => {
     const parsed = updateSchema.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Mise à jour invalide." });

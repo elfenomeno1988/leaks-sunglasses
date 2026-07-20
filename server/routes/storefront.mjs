@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createOrder, publicOrder } from "../services/orders.mjs";
+import { createBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
 
 const trackingSchema = z.object({
   reference: z.string().min(8).max(40),
@@ -25,6 +26,19 @@ export async function storefrontRoutes(app, deps) {
       redirectUrl: result.redirectUrl,
       manual: result.manual
     });
+  });
+
+  app.get("/api/bookings/availability", async (request, reply) => {
+    const date = String(request.query.date || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return reply.code(400).send({ error: "Date invalide." });
+    return { date, booked: await bookedSlots({ db, date }) };
+  });
+
+  app.post("/api/bookings", {
+    config: { rateLimit: { max: 6, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const booking = await createBooking({ db, catalog, input: request.body });
+    return reply.code(201).send({ booking: publicBooking(booking) });
   });
 
   app.get("/api/orders/:reference", async (request, reply) => {

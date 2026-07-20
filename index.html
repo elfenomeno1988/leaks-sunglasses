@@ -203,69 +203,103 @@
       </div>
     </section>
 
-    <!-- ═══════ 04 · Rendez-vous ═══════ -->
+    <!-- ═══════ 04 · L'essayage privé — expérience concierge ═══════ -->
     <section class="section" id="rendez-vous">
       <header class="section-head r">
         <h2>L'essayage privé</h2>
-        <p class="note">04 — Le studio pour vous seul, la gamme complète<br>Confirmation immédiate sur WhatsApp.</p>
+        <p class="note">04 — Le studio pour vous seul, quarante-cinq minutes<br>Votre concierge confirme sur WhatsApp sous 15 minutes.</p>
       </header>
 
-      <div class="rdv-grid">
-        <aside class="rdv-summary r" aria-live="polite">
-          <span class="tag">Votre rendez-vous</span>
-          <dl class="summary-list">
-            <div><dt>Date</dt><dd id="sum-date">—</dd></div>
-            <div><dt>Heure</dt><dd id="sum-time">—</dd></div>
-            <div><dt>Nom</dt><dd id="sum-name">—</dd></div>
-          </dl>
-          <p class="summary-note">Quarante-cinq minutes, les sept signatures devant vous, sans engagement.</p>
-          <p class="summary-place">LEAKS Studio — Abidjan<br>Lun – Sam · 10 h → 19 h</p>
-        </aside>
+      <div class="xp r" id="xp">
+        <nav class="xp-rail" aria-label="Étapes de la réservation">
+          <button type="button" class="xp-step is-active" data-go="pieces"><em>01</em><span>Les pièces</span></button>
+          <button type="button" class="xp-step" data-go="moment" disabled><em>02</em><span>Le moment</span></button>
+          <button type="button" class="xp-step" data-go="contact" disabled><em>03</em><span>Vous</span></button>
+          <button type="button" class="xp-step" data-go="done" disabled><em>04</em><span>WhatsApp</span></button>
+        </nav>
 
-        <form id="rdv-form" novalidate>
+        <div class="xp-body">
 
-          <fieldset class="step r" data-step="date">
-            <legend><em>01</em>Date &amp; heure</legend>
-            <div class="field">
-              <label for="date">Date souhaitée</label>
-              <input type="date" id="date" name="date" required>
-              <p class="field-hint" id="date-hint">Le studio est fermé le dimanche.</p>
+          <section class="xp-panel is-active" data-panel="pieces" aria-label="Les pièces à préparer">
+            <p class="xp-lead">Dites au concierge ce qu'il pose sur le plateau avant votre arrivée.
+            <small>Optionnel — les sept signatures vous attendent de toute façon.</small></p>
+            <div class="xp-models" id="xp-models" role="group" aria-label="Choisir des modèles"></div>
+            <div class="xp-actions">
+              <span class="xp-count" id="xp-count" aria-live="polite">Plateau complet</span>
+              <button type="button" class="btn btn-ink" data-next="moment">Continuer</button>
             </div>
-            <div class="field">
-              <label id="slots-label">Créneau</label>
-              <div class="chips" id="slots" role="group" aria-labelledby="slots-label"></div>
-            </div>
-          </fieldset>
+          </section>
 
-          <fieldset class="step r" data-step="contact">
-            <legend><em>02</em>Vos coordonnées</legend>
+          <section class="xp-panel" data-panel="moment" aria-label="La date et l'heure">
+            <p class="xp-lead">Choisissez votre moment.
+            <small>Lun – Sam · 10 h → 19 h. Chaque créneau n'est proposé qu'à une seule personne.</small></p>
+            <div class="xp-days" id="xp-days" role="group" aria-label="Choisir un jour"></div>
+            <div class="xp-slots" id="xp-slots" aria-live="polite"></div>
+            <div class="xp-actions">
+              <button type="button" class="btn btn-ghost" data-back="pieces">Retour</button>
+              <button type="button" class="btn btn-ink" data-next="contact" id="xp-to-contact" disabled>Continuer</button>
+            </div>
+          </section>
+
+          <section class="xp-panel" data-panel="contact" aria-label="Vos coordonnées">
+            <p class="xp-lead">Le concierge vous répond directement sur WhatsApp.</p>
             <div class="field-duo">
               <div class="field">
-                <label for="name">Prénom &amp; nom</label>
-                <input type="text" id="name" name="name" placeholder="Awa Ndiaye" autocomplete="name" required>
+                <label for="xp-name">Prénom &amp; nom</label>
+                <input type="text" id="xp-name" placeholder="Awa Ndiaye" autocomplete="name" required>
               </div>
               <div class="field">
-                <label for="phone">Téléphone (WhatsApp)</label>
-                <input type="tel" id="phone" name="phone" placeholder="+225 01 00 00 00 00" autocomplete="tel" required>
+                <label for="xp-phone">Numéro WhatsApp</label>
+                <input type="tel" id="xp-phone" placeholder="+225 01 00 00 00 00" autocomplete="tel" required>
               </div>
             </div>
             <div class="field">
-              <label for="note">Un mot pour le concierge <small>(optionnel)</small></label>
-              <textarea id="note" name="note" rows="2" placeholder="Un coloris en tête, une occasion…"></textarea>
+              <label for="xp-note">Un mot pour le concierge <small>(optionnel)</small></label>
+              <textarea id="xp-note" rows="2" placeholder="Un coloris en tête, une occasion, une contrainte d'horaire…"></textarea>
             </div>
-          </fieldset>
+            <div class="form-errors" id="xp-errors" role="alert" hidden></div>
+            <div class="xp-actions">
+              <button type="button" class="btn btn-ghost" data-back="moment">Retour</button>
+              <button type="button" class="btn btn-ink" id="xp-confirm">Réserver ce créneau</button>
+            </div>
+          </section>
 
-          <div class="form-errors" id="form-errors" role="alert" hidden></div>
+          <section class="xp-panel" data-panel="done" aria-label="Confirmation WhatsApp">
+            <p class="xp-lead" id="xp-done-lead">Votre créneau est retenu.
+            <small>Un dernier geste : envoyez votre carte au concierge — il vous répond sous 15 minutes.</small></p>
 
-          <button type="submit" class="btn btn-ink btn-submit">Confirmer sur WhatsApp</button>
-          <p class="form-microcopy">Votre demande s'ouvre dans WhatsApp, pré-rédigée.
-          Le concierge LEAKS confirme votre créneau sous 15 minutes.</p>
+            <div class="wa-preview" aria-label="Aperçu du message WhatsApp">
+              <div class="wa-top">
+                <span class="wa-avatar" aria-hidden="true"></span>
+                <span class="wa-who"><strong>Concierge LEAKS</strong><em>en ligne</em></span>
+              </div>
+              <div class="wa-thread">
+                <p class="wa-bubble" id="wa-bubble"></p>
+              </div>
+            </div>
 
-          <div class="form-success" id="form-success" hidden>
-            <p><strong>Votre demande est prête dans WhatsApp.</strong><br>
-            Envoyez le message tel quel — le concierge vous confirme le créneau aussitôt.</p>
-          </div>
-        </form>
+            <div class="xp-actions xp-actions-done">
+              <a class="btn btn-ink" id="wa-send" href="#" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
+              <a class="btn btn-ghost" id="ics-dl" href="#" download="leaks-essayage.ics">Ajouter au calendrier</a>
+            </div>
+            <p class="form-microcopy">Le message part tel quel, votre référence fait foi.
+            Besoin de changer ? Répondez simplement au concierge.</p>
+          </section>
+        </div>
+
+        <aside class="xp-ticket r" aria-live="polite" aria-label="Carte de rendez-vous">
+          <img class="ticket-brand" src="assets/img/brand/logo-word.png" alt="LEAKS">
+          <span class="tag">Carte de rendez-vous</span>
+          <p class="ticket-ref" id="tk-ref">—</p>
+          <dl class="summary-list">
+            <div><dt>Date</dt><dd id="tk-date">—</dd></div>
+            <div><dt>Heure</dt><dd id="tk-time">—</dd></div>
+            <div><dt>Pièces</dt><dd id="tk-models">Plateau complet</dd></div>
+            <div><dt>Nom</dt><dd id="tk-name">—</dd></div>
+          </dl>
+          <p class="ticket-status" id="tk-status">Composez votre rendez-vous —<br>la carte s'écrit avec vous.</p>
+          <p class="summary-place">LEAKS Studio — Abidjan<br>Lun – Sam · 10 h → 19 h · 45 min</p>
+        </aside>
       </div>
     </section>
 
@@ -333,6 +367,8 @@
     </svg>
   </a>
 
+  <script src="js/catalog-data.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/rdv.js"></script>
 </body>
 </html>
