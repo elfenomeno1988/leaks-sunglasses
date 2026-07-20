@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suivi de commande — LEAKS</title>
+  <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/commerce.css">
+</head>
+<body class="commerce-page status-page">
+  <header class="commerce-nav"><a href="/" class="commerce-brand"><img src="/assets/img/brand/logo-word.png" alt="LEAKS"></a><p>Suivi sécurisé</p><a href="/" class="commerce-back">Retour à la boutique</a></header>
+  <main class="status-shell">
+    <img class="status-eye" src="/assets/img/brand/eye.png" alt="">
+    <p class="kicker">Commande <span id="order-reference">—</span></p>
+    <h1 id="status-title">Vérification du paiement…</h1>
+    <p id="status-copy">Nous interrogeons le statut de votre commande.</p>
+    <div class="status-progress" id="status-progress">
+      <span data-step="pending">Commande créée</span><span data-step="paid">Paiement validé</span><span data-step="ready">Prête</span><span data-step="delivered">Remise</span>
+    </div>
+    <dl class="status-details" id="status-details" hidden>
+      <div><dt>Monture</dt><dd id="status-product">—</dd></div><div><dt>Coloris</dt><dd id="status-variant">—</dd></div>
+      <div><dt>Total</dt><dd id="status-total">—</dd></div><div><dt>Réception</dt><dd id="status-delivery">—</dd></div>
+    </dl>
+    <div class="status-actions"><a href="/" class="btn btn-dark">Retour à LEAKS</a><a id="receipt-link" class="btn btn-line" href="#" target="_blank" rel="noopener" hidden>Voir le reçu</a></div>
+    <p class="status-help">Gardez ce lien : il est votre suivi privé de commande.</p>
+  </main>
+  <script src="/js/confirmation.js" type="module"></script>
+</body>
+</html>

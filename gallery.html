@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galerie — LEAKS Sunglasses</title>
+  <meta name="description" content="LEAKS Gallery. Un modèle, plusieurs coloris.">
+  <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body class="gallery-page">
+  <header class="site-nav">
+    <a class="site-brand" href="/" aria-label="Retour à la grille LEAKS">
+      <img src="/assets/img/brand/logo-word.png" alt="LEAKS Sunglasses">
+    </a>
+    <nav class="site-links" aria-label="Navigation principale">
+      <a href="/#collection">Collection</a>
+      <a href="/#contact">Contact</a>
+      <a href="/">Grille</a>
+    </nav>
+    <a class="btn btn-line btn-sm site-cta" data-wa-link href="https://wa.me/2250173891404" target="_blank" rel="noopener">RDV</a>
+  </header>
+
+  <main class="site-main gallery-main">
+    <section class="gallery-intro reveal">
+      <p class="kicker">Galerie</p>
+      <h1 data-gallery-title>Modèle</h1>
+      <p data-gallery-copy>Un modèle, plusieurs coloris.</p>
+    </section>
+
+    <section class="gallery-shell">
+      <figure class="gallery-visual reveal">
+        <span class="product-tag" data-gallery-view-tag>Vue de face</span>
+        <img data-gallery-image src="" alt="">
+        <div class="gallery-views" data-gallery-views role="group" aria-label="Vues du coloris"></div>
+      </figure>
+
+      <aside class="gallery-panel reveal">
+        <dl class="gallery-details">
+          <div><dt>Modèle</dt><dd data-gallery-model>—</dd></div>
+          <div><dt>Coloris</dt><dd data-gallery-color>—</dd></div>
+          <div><dt>Référence</dt><dd data-gallery-sku>—</dd></div>
+          <div><dt>Prix</dt><dd data-gallery-price>—</dd></div>
+        </dl>
+
+        <div>
+          <p class="gallery-label">Coloris</p>
+          <div class="gallery-swatches" data-gallery-swatches></div>
+        </div>
+
+        <div class="gallery-actions">
+          <a class="btn btn-dark" data-gallery-buy href="#">Acheter</a>
+          <a class="btn btn-line" data-gallery-rdv href="#" data-wa-link>RDV</a>
+          <a class="btn btn-line" href="/#collection">Retour à la grille</a>
+        </div>
+
+        <p class="gallery-note">Même modèle. Autres coloris.</p>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/js/catalog-data.js"></script>
+  <script src="/js/gallery.js" type="module"></script>
+</body>
+</html>

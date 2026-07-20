@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commandes — LEAKS Admin</title>
+  <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/commerce.css">
+</head>
+<body class="commerce-page admin-page">
+  <main id="login-view" class="admin-login">
+    <img src="/assets/img/brand/logo-word.png" alt="LEAKS">
+    <p class="kicker">Espace privé</p><h1>Administration</h1>
+    <form id="login-form">
+      <label>E-mail<input type="email" name="email" autocomplete="username" required></label>
+      <label>Mot de passe<input type="password" name="password" autocomplete="current-password" minlength="8" required></label>
+      <p class="checkout-error" id="login-error" hidden></p>
+      <button class="btn btn-dark btn-xl" type="submit">Se connecter</button>
+    </form>
+  </main>
+
+  <div id="dashboard-view" hidden>
+    <header class="admin-nav">
+      <img src="/assets/img/brand/logo-word.png" alt="LEAKS"><span>Commandes</span>
+      <div><span id="admin-email"></span><button id="logout" type="button">Déconnexion</button></div>
+    </header>
+    <main class="admin-shell">
+      <header class="admin-heading"><div><p class="kicker">Vue d'ensemble</p><h1>Les commandes.</h1></div><button type="button" class="btn btn-line" id="export-csv">Exporter CSV</button></header>
+      <section class="admin-stats">
+        <article><span>Chiffre encaissé</span><strong id="stat-revenue">—</strong></article>
+        <article><span>Commandes payées</span><strong id="stat-paid">—</strong></article>
+        <article><span>En attente</span><strong id="stat-pending">—</strong></article>
+        <article><span>Total</span><strong id="stat-orders">—</strong></article>
+      </section>
+      <form class="admin-filters" id="filters-form">
+        <input type="search" name="search" placeholder="Référence, client ou téléphone">
+        <select name="paymentStatus"><option value="">Tous les paiements</option><option value="paid">Payé</option><option value="pending">En attente</option><option value="manual_review">À vérifier</option><option value="failed">Échoué</option><option value="cancelled">Annulé</option></select>
+        <select name="status"><option value="">Tous les statuts</option><option value="confirmed">Confirmée</option><option value="preparing">Préparation</option><option value="ready">Prête</option><option value="shipped">Expédiée</option><option value="delivered">Livrée</option><option value="cancelled">Annulée</option></select>
+        <button class="btn btn-dark" type="submit">Filtrer</button>
+      </form>
+      <div class="admin-table-wrap">
+        <table class="admin-table"><thead><tr><th>Commande</th><th>Client</th><th>Article</th><th>Paiement</th><th>Total</th><th>Statut</th><th></th></tr></thead><tbody id="orders-body"></tbody></table>
+        <div class="admin-empty" id="orders-empty" hidden>Aucune commande pour ces critères.</div>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="order-dialog" class="order-dialog">
+    <form method="dialog"><button class="dialog-close" aria-label="Fermer">×</button></form>
+    <div id="dialog-content"></div>
+  </dialog>
+  <script src="/js/admin.js" type="module"></script>
+</body>
+</html>
