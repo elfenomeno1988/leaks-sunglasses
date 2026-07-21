@@ -12,13 +12,12 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
-  /* ── Une seule voix : Instrument ────────────────────────────
-     · Instrument Sans  → tout. Trois graisses (400/500/600),
-       casse de phrase, interlettrage neutre, corps 16.
-     · Instrument Serif → uniquement l'éditorial (manifeste,
-       campagne). La hiérarchie vient de l'espace, pas de l'ornement. */
-  --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Instrument Sans", system-ui, sans-serif;
+  /* ── Une seule voix : Space Grotesk ─────────────────────────
+     Grotesque géométrique, futuriste mais lisible. Quatre graisses
+     (400/500/600/700), casse de phrase, corps 16. Une seule police,
+     partout — site et application. Rien d'autre. */
+  --serif: "Space Grotesk", system-ui, sans-serif;
+  --sans: "Space Grotesk", system-ui, sans-serif;
 
 
   --gutter: clamp(20px, 3.4vw, 48px);
@@ -145,7 +144,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 /* La ligne du hero murmure — comme sur le Drop 001 d'origine. */
 .hero-line {
   font-family: var(--serif);
-  font-style: italic;
+
   font-size: clamp(20px, 2.2vw, 27px);
   line-height: 1.4;
   font-weight: 400;
@@ -261,7 +260,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .manifesto p {
   font-family: var(--serif);
-  font-style: italic;
+
   font-size: clamp(22px, 3vw, 40px);
   line-height: 1.12;
   color: var(--white);
@@ -416,7 +415,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   font-variant-numeric: tabular-nums;
 }
 
-.drop-date em { font-family: var(--serif); font-style: italic; font-weight: 400; }
+.drop-date em { font-family: var(--serif); font-weight: 400; }
 
 .drop-rules {
   display: grid;
@@ -632,7 +631,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .faq-list summary::-webkit-details-marker { display: none; }
 .faq-list summary:hover { color: var(--mute); }
 
-.faq-x { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--mute); transition: transform 0.4s var(--ease); }
+.faq-x { font-family: var(--serif); font-size: 18px; color: var(--mute); transition: transform 0.4s var(--ease); }
 details[open] .faq-x { transform: rotate(45deg); }
 
 .faq-list details p { padding-bottom: 22px; color: var(--mute); font-size: 14px; max-width: 62ch; }
@@ -752,7 +751,7 @@ details[open] .faq-x { transform: rotate(45deg); }
 
 .page-head .lede {
   font-family: var(--serif);
-  font-style: italic;
+
   font-size: clamp(19px, 2vw, 26px);
   color: var(--mute);
   margin-top: 18px;
@@ -771,7 +770,7 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 
 .manifesto-body p + p { margin-top: 1.6em; }
-.manifesto-body p em { font-style: italic; }
+.manifesto-body p em { }
 .manifesto-body p.plain {
   font-family: var(--sans);
   font-size: 14px;
@@ -829,7 +828,7 @@ details[open] .faq-x { transform: rotate(45deg); }
   margin-top: 14px;
 }
 
-.look-meta h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.look-meta h2 em { font-family: var(--serif); font-weight: 400; text-transform: none; letter-spacing: 0; }
 
 .look-meta .desc { font-size: 14px; color: var(--mute); margin-top: 12px; max-width: 40ch; }
 

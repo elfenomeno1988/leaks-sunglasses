@@ -13,8 +13,8 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
-  --sans: "Instrument Sans", system-ui, sans-serif;
-  --serif: "Instrument Serif", Georgia, serif;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --serif: "Space Grotesk", system-ui, sans-serif;
 
   --ah: 52px;                                   /* en-tête */
   --tb: calc(56px + env(safe-area-inset-bottom)); /* barre d'onglets */
@@ -146,7 +146,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .drop-logo { width: min(300px, 78%); margin: 22px 0 14px; }
 
-.drop-line { font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--mute); }
+.drop-line { font-family: var(--serif); font-size: 19px; color: var(--mute); }
 
 .count {
   display: flex;
