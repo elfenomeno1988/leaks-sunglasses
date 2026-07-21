@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>LEAKS — Drop 001</title>
+  <meta name="description" content="LEAKS Sunglasses — l'application. Sept signatures, 50 exemplaires, Abidjan.">
+  <meta name="theme-color" content="#fafaf7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="LEAKS">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
+  <link rel="apple-touch-icon" href="/assets/img/brand/eye.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Michroma&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body>
+
+  <!-- ── En-tête app ─────────────────────────────────────────── -->
+  <header class="ah" id="ah">
+    <button type="button" class="ah-back" id="ah-back" aria-label="Retour" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+    </button>
+    <img class="ah-brand" src="/assets/img/brand/logo-word.png" alt="LEAKS">
+    <a class="ah-wa" id="ah-wa" href="#" target="_blank" rel="noopener" aria-label="Concierge WhatsApp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a9 9 0 0 0-7.6 13.8L3 21l4.4-1.3A9 9 0 1 0 12 3Z"/><path d="M8.8 9.2c.3 2.7 3.2 5.6 6 6l1.4-1.4-2-1.2-1 .7c-1-.5-1.9-1.4-2.4-2.4l.7-1-1.2-2Z"/></svg>
+    </a>
+  </header>
+
+  <main class="stage" id="stage">
+
+    <!-- ── Écran · Drop ──────────────────────────────────────── -->
+    <section class="screen is-active" data-screen="drop">
+      <div class="drop-hero">
+        <p class="tag">Drop 001 — Abidjan</p>
+        <img class="drop-logo" src="/assets/img/brand/logo.png" alt="LEAKS Sunglasses">
+        <p class="drop-line">Sept signatures. 50 exemplaires.</p>
+        <div class="count" role="timer" aria-label="Compte à rebours avant le drop">
+          <span><b id="cd-d">—</b><i>Jours</i></span>
+          <span><b id="cd-h">—</b><i>Heures</i></span>
+          <span><b id="cd-m">—</b><i>Min</i></span>
+          <span><b id="cd-s">—</b><i>Sec</i></span>
+        </div>
+        <div class="drop-cta">
+          <a class="btn btn-ink" href="#/collection">Découvrir la collection</a>
+          <a class="btn btn-ghost" href="#/rdv">Réserver un essayage</a>
+        </div>
+      </div>
+      <figure class="drop-visual">
+        <img src="/assets/img/campaign/ribbed-glass.jpg" alt="Campagne LEAKS — visage bleu derrière un verre strié">
+        <figcaption><span>Campagne 001</span><span>25.07.2026 — 20 h</span></figcaption>
+      </figure>
+    </section>
+
+    <!-- ── Écran · Collection ────────────────────────────────── -->
+    <section class="screen" data-screen="collection">
+      <header class="sc-head">
+        <h1>La collection</h1>
+        <p class="tag">Sept signatures · aucun restock</p>
+      </header>
+      <div class="feed" id="feed"></div>
+    </section>
+
+    <!-- ── Écran · Modèle (poussé) ───────────────────────────── -->
+    <section class="screen screen-push" data-screen="model">
+      <div class="pager" id="pager"></div>
+      <div class="pager-dots" id="pager-dots"></div>
+      <div class="m-body">
+        <div class="m-row">
+          <h1 id="m-name">—</h1>
+          <span class="m-price" id="m-price">—</span>
+        </div>
+        <p class="m-desc" id="m-desc">—</p>
+        <div class="m-swatches" id="m-swatches"></div>
+        <dl class="m-lines">
+          <div><dt>Référence</dt><dd id="m-sku">—</dd></div>
+          <div><dt>Coloris</dt><dd id="m-color">—</dd></div>
+          <div><dt>Édition</dt><dd>50 exemplaires</dd></div>
+        </dl>
+      </div>
+      <div class="m-actions">
+        <a class="btn btn-ink" id="m-buy" href="#">Acheter</a>
+        <a class="btn btn-ghost" href="#/rdv">Essayer</a>
+      </div>
+    </section>
+
+    <!-- ── Écran · Réserver ──────────────────────────────────── -->
+    <section class="screen" data-screen="rdv">
+      <header class="sc-head">
+        <h1>L'essayage privé</h1>
+        <p class="tag">45 min · le studio pour vous seul</p>
+      </header>
+
+      <div class="rdv-steps" id="rdv-steps">
+        <span class="is-active" data-dot="moment">01</span><i></i>
+        <span data-dot="contact">02</span><i></i>
+        <span data-dot="done">03</span>
+      </div>
+
+      <div class="rdv-panel is-active" data-panel="moment">
+        <p class="lead">Choisissez votre moment — les sept signatures vous attendent.</p>
+        <div class="days" id="days"></div>
+        <div class="slots" id="slots"></div>
+        <div class="sticky-cta">
+          <button type="button" class="btn btn-ink" id="to-contact" disabled>Continuer</button>
+        </div>
+      </div>
+
+      <div class="rdv-panel" data-panel="contact">
+        <p class="lead">Le concierge vous répond sur WhatsApp sous 15 minutes.</p>
+        <label class="field">Prénom &amp; nom
+          <input type="text" id="f-name" placeholder="Awa Ndiaye" autocomplete="name">
+        </label>
+        <label class="field">Numéro WhatsApp
+          <input type="tel" id="f-phone" placeholder="+225 01 00 00 00 00" autocomplete="tel" inputmode="tel">
+        </label>
+        <label class="field">Un mot pour le concierge <small>(optionnel)</small>
+          <textarea id="f-note" rows="2" placeholder="Un coloris en tête, une occasion…"></textarea>
+        </label>
+        <p class="err" id="rdv-err" role="alert" hidden></p>
+        <div class="sticky-cta two">
+          <button type="button" class="btn btn-ghost" id="back-moment">Retour</button>
+          <button type="button" class="btn btn-ink" id="confirm-rdv">Réserver</button>
+        </div>
+      </div>
+
+      <div class="rdv-panel" data-panel="done">
+        <p class="lead" id="done-lead">Votre créneau est retenu.</p>
+        <div class="ticket" id="ticket">
+          <img src="/assets/img/brand/logo-word.png" alt="LEAKS">
+          <span class="tag">Carte de rendez-vous</span>
+          <p class="ticket-ref" id="t-ref">—</p>
+          <p class="ticket-when" id="t-when">—</p>
+          <p class="ticket-place">LEAKS Studio — Abidjan · 45 min</p>
+        </div>
+        <div class="sticky-cta two">
+          <a class="btn btn-ghost" id="t-ics" href="#" download="leaks-essayage.ics">Calendrier</a>
+          <a class="btn btn-ink" id="t-wa" href="#" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Écran · Studio ────────────────────────────────────── -->
+    <section class="screen" data-screen="studio">
+      <header class="sc-head">
+        <h1>Le studio</h1>
+        <p class="tag">LEAKS — Abidjan</p>
+      </header>
+      <dl class="m-lines st-lines">
+        <div><dt>Horaires</dt><dd>Lun – Sam · 10 h → 19 h</dd></div>
+        <div><dt>Drop 001</dt><dd>25 juillet 2026 — 20 h</dd></div>
+        <div><dt>Édition</dt><dd>50 exemplaires par coloris</dd></div>
+        <div><dt>Paiement</dt><dd>Wave · Mobile Money · Carte</dd></div>
+      </dl>
+      <nav class="st-links">
+        <a href="/manifeste.html">Le manifeste <span>↗</span></a>
+        <a href="/campagne.html">La campagne <span>↗</span></a>
+        <a id="st-wa" href="#" target="_blank" rel="noopener">Concierge WhatsApp <span>↗</span></a>
+        <a href="/index.html?desktop=1">Version bureau <span>↗</span></a>
+      </nav>
+      <p class="st-foot tag">Leaks Sunglasses — Édition 001 / ∞</p>
+    </section>
+  </main>
+
+  <!-- ── Barre d'onglets ─────────────────────────────────────── -->
+  <nav class="tabbar" id="tabbar" aria-label="Navigation">
+    <a href="#/drop" data-tab="drop" class="is-active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+      <span>Drop</span>
+    </a>
+    <a href="#/collection" data-tab="collection">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="7.4" height="7.4"/><rect x="13.1" y="3.5" width="7.4" height="7.4"/><rect x="3.5" y="13.1" width="7.4" height="7.4"/><rect x="13.1" y="13.1" width="7.4" height="7.4"/></svg>
+      <span>Collection</span>
+    </a>
+    <a href="#/rdv" data-tab="rdv">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 9.5h17M8 2.8v4M16 2.8v4"/></svg>
+      <span>Réserver</span>
+    </a>
+    <a href="#/studio" data-tab="studio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.5 12 4l8 6.5M5.5 9.5V20h13V9.5"/></svg>
+      <span>Studio</span>
+    </a>
+  </nav>
+
+  <script src="/js/catalog-data.js"></script>
+  <script src="/js/mobile.js"></script>
+</body>
+</html>

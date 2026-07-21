@@ -39,11 +39,12 @@ export async function buildApp(overrides = {}) {
     allowedPath(pathName) {
       return pathName === "/" || pathName === "/index.html" || pathName === "/gallery.html" || pathName === "/checkout.html" || pathName === "/confirmation.html" ||
         pathName === "/admin.html" || pathName === "/campagne.html" || pathName === "/manifeste.html" ||
+        pathName === "/m.html" || pathName === "/manifest.webmanifest" ||
         pathName.startsWith("/assets/") || pathName.startsWith("/css/") || pathName.startsWith("/js/");
     }
   });
 
-  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste"]) {
+  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste", "m"]) {
     app.get(`/${page}`, async (_request, reply) => reply.redirect(`/${page}.html`));
   }
   app.get("/health", async () => {

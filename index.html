@@ -10,6 +10,13 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/img/campaign/oryx-blue-front.jpg">
   <link rel="icon" type="image/png" href="assets/img/brand/eye.png">
+  <script>
+    // Les téléphones reçoivent l'application, pas un portage du site.
+    if (matchMedia("(pointer: coarse)").matches && matchMedia("(max-width: 820px)").matches
+        && !new URLSearchParams(location.search).has("desktop")) {
+      location.replace("/m.html");
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Michroma&display=swap" rel="stylesheet">
