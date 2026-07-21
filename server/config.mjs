@@ -12,7 +12,14 @@ const schema = z.object({
   PAYDUNYA_PRIVATE_KEY: z.string().min(1),
   PAYDUNYA_TOKEN: z.string().min(1),
   WHATSAPP_NUMBER: z.string().regex(/^\d{8,15}$/).default("2250173891404"),
-  DELIVERY_ABIDJAN_FEE: z.coerce.number().int().nonnegative().default(2000)
+  DELIVERY_ABIDJAN_FEE: z.coerce.number().int().nonnegative().default(2000),
+
+  /* WhatsApp Business (Cloud API, Meta) — l'envoi automatique des messages.
+     Laisser vide tant que le compte n'est pas approuvé : l'app fonctionne
+     alors en remise « wa.me » (le client envoie lui-même sa carte). */
+  WHATSAPP_CLOUD_TOKEN: z.string().optional().default(""),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional().default(""),
+  WHATSAPP_CONCIERGE_NUMBER: z.string().regex(/^\d{8,15}$/).optional().default("2250173891404")
 });
 
 export function loadConfig(env = process.env) {

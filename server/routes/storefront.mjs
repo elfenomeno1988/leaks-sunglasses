@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createOrder, publicOrder } from "../services/orders.mjs";
 import { createBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
+import { createWhatsAppNotifier, handoffMessage } from "../services/whatsapp.mjs";
 
 const trackingSchema = z.object({
   reference: z.string().min(8).max(40),
@@ -34,11 +35,29 @@ export async function storefrontRoutes(app, deps) {
     return { date, booked: await bookedSlots({ db, date }) };
   });
 
+  const whatsapp = createWhatsAppNotifier(config, app.log);
+
   app.post("/api/bookings", {
     config: { rateLimit: { max: 6, timeWindow: "10 minutes" } }
   }, async (request, reply) => {
-    const booking = await createBooking({ db, catalog, input: request.body });
-    return reply.code(201).send({ booking: publicBooking(booking) });
+    const row = await createBooking({ db, catalog, input: request.body });
+    const booking = {
+      reference: row.reference,
+      date: row.booking_date instanceof Date ? row.booking_date.toISOString().slice(0, 10) : String(row.booking_date),
+      time: row.booking_time,
+      name: row.customer_name,
+      phone: row.customer_phone,
+      note: row.customer_note || ""
+    };
+    const { delivery } = await whatsapp.notifyBooking(booking);
+    return reply.code(201).send({
+      booking: publicBooking(row),
+      whatsapp: {
+        delivery,                              // "sent" (API Cloud) ou "handoff" (wa.me)
+        conciergeNumber: config.WHATSAPP_NUMBER,
+        handoffText: handoffMessage(booking)   // la carte, déjà écrite
+      }
+    });
   });
 
   app.get("/api/orders/:reference", async (request, reply) => {

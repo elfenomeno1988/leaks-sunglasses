@@ -142,7 +142,8 @@
 
   const rdv = {
     date: "", time: "", name: "", phone: "", note: "",
-    reference: "", availability: new Map()
+    reference: "", delivery: "handoff", handoffText: "",
+    availability: new Map()
   };
 
   const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -290,8 +291,12 @@
       }
       if (!res.ok) throw new Error();
       rdv.reference = data.booking.reference;
+      rdv.delivery = data.whatsapp?.delivery || "handoff";
+      rdv.handoffText = data.whatsapp?.handoffText || "";
     } catch {
       rdv.reference = "";
+      rdv.delivery = "handoff";
+      rdv.handoffText = "";
     } finally {
       confirmBtn.disabled = false;
       confirmBtn.textContent = "Réserver";
@@ -299,18 +304,29 @@
 
     prepareDone();
     rdvPanel("done");
+
+    /* La carte part toute seule : WhatsApp s'ouvre, déjà rédigé.
+       (Si l'API Cloud a déjà tout envoyé, inutile d'ouvrir quoi que ce soit.) */
+    if (rdv.delivery !== "sent") {
+      const opened = window.open($("#t-wa").href, "_blank", "noopener");
+      if (!opened) $("#t-wa").classList.add("pulse");
+    }
   });
 
+  /* Secours hors ligne — même voix que le serveur. */
   function waMessage() {
+    if (rdv.handoffText) return rdv.handoffText;
     return [
-      `Bonjour ${CONFIG.brandName} ✦ Essayage privé — Drop 001`,
-      rdv.reference ? `Référence : ${rdv.reference}` : null,
+      `Bonjour ${CONFIG.brandName} ✦ Essayage privé`,
       "",
-      `— ${frDate(rdv.date)} à ${rdv.time}`,
-      `— ${rdv.name} · ${prettyPhone()}`,
-      rdv.note ? `— Note : ${rdv.note}` : null,
+      "Ma carte de rendez-vous :",
+      rdv.reference ? `· ${rdv.reference}` : null,
+      `· ${frDate(rdv.date)} · ${rdv.time}`,
+      `· ${rdv.name} — ${prettyPhone()}`,
+      rdv.note ? `· Note : ${rdv.note}` : null,
       "",
-      "Merci de me confirmer le créneau."
+      "Quarante-cinq minutes, le studio pour moi seul.",
+      "Un mot de votre concierge pour confirmer ?"
     ].filter((l) => l !== null).join("\n");
   }
 
@@ -331,12 +347,18 @@
   }
 
   function prepareDone() {
-    $("#done-lead").textContent = rdv.reference
-      ? "Votre créneau est retenu. Envoyez votre carte au concierge."
-      : "Votre demande est prête. Envoyez-la — le concierge bloque le créneau à réception.";
+    const sent = rdv.delivery === "sent";
+    $("#done-lead").textContent = sent
+      ? "C'est fait — votre confirmation est déjà dans votre WhatsApp."
+      : rdv.reference
+        ? "Votre créneau est retenu. WhatsApp s'ouvre avec votre carte — envoyez-la telle quelle."
+        : "Votre demande est prête. Envoyez-la — le concierge bloque le créneau à réception.";
     $("#t-ref").textContent = rdv.reference || "· · ·";
     $("#t-when").textContent = `${frDate(rdv.date)} · ${rdv.time}`;
-    $("#t-wa").href = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;
+    $("#t-wa").textContent = sent ? "Ouvrir la conversation" : "Envoyer sur WhatsApp";
+    $("#t-wa").href = sent
+      ? `https://wa.me/${CONFIG.whatsappNumber}`
+      : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;
     $("#t-ics").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;
   }
 

@@ -16,7 +16,8 @@
   const state = {
     date: "", time: "",
     name: "", phone: "", note: "",
-    reference: "", offline: false
+    reference: "", offline: false,
+    delivery: "handoff", handoffText: ""
   };
 
   /* ── Utilitaires date (le studio vit en UTC, comme Abidjan) ── */
@@ -220,9 +221,13 @@
       }
       if (!res.ok) throw new Error(data.message || data.error || "");
       state.reference = data.booking.reference;
+      state.delivery = data.whatsapp?.delivery || "handoff";
+      state.handoffText = data.whatsapp?.handoffText || "";
     } catch {
       state.reference = ""; // mode dégradé : la demande part sur WhatsApp sans référence
       state.offline = true;
+      state.delivery = "handoff";
+      state.handoffText = "";
     } finally {
       confirmBtn.disabled = false;
       confirmBtn.textContent = "Réserver ce créneau";
@@ -231,20 +236,30 @@
     prepareDone();
     goTo("done");
     ticket();
+
+    /* La carte part toute seule : WhatsApp s'ouvre, déjà rédigé.
+       (Si l'API Cloud a déjà tout envoyé côté serveur, rien à ouvrir.) */
+    if (state.delivery !== "sent") {
+      window.open($("#wa-send").href, "_blank", "noopener");
+    }
   });
 
   /* ── Panneau 04 : aperçu WhatsApp + calendrier ─────────────── */
 
+  /* Secours hors ligne — même voix que le serveur. */
   function waMessage() {
+    if (state.handoffText) return state.handoffText;
     const lines = [
-      `Bonjour LEAKS ✦ Essayage privé — Drop 001`,
-      state.reference ? `Référence : ${state.reference}` : null,
+      `Bonjour LEAKS ✦ Essayage privé`,
       "",
-      `— ${frDate(state.date)} à ${state.time}`,
-      `— ${state.name} · ${prettyPhone()}`,
-      state.note ? `— Note : ${state.note}` : null,
+      "Ma carte de rendez-vous :",
+      state.reference ? `· ${state.reference}` : null,
+      `· ${frDate(state.date)} · ${state.time}`,
+      `· ${state.name} — ${prettyPhone()}`,
+      state.note ? `· Note : ${state.note}` : null,
       "",
-      "Merci de me confirmer le créneau."
+      "Quarante-cinq minutes, le studio pour moi seul.",
+      "Un mot de votre concierge pour confirmer ?"
     ];
     return lines.filter((l) => l !== null).join("\n");
   }
@@ -268,15 +283,34 @@
   }
 
   function prepareDone() {
+    const sent = state.delivery === "sent";
     const msg = waMessage();
-    $("#wa-bubble").textContent = msg;
-    $("#wa-send").href = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+    $("#wa-bubble").textContent = sent ? customerEcho() : msg;
+    $("#wa-send").textContent = sent ? "Ouvrir la conversation" : "Envoyer sur WhatsApp";
+    $("#wa-send").href = sent
+      ? `https://wa.me/${CONFIG.whatsappNumber}`
+      : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
     $("#ics-dl").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;
-    $("#xp-done-lead").innerHTML = state.reference
-      ? `Votre créneau est retenu sous la référence <b>${state.reference}</b>.
-         <small>Un dernier geste : envoyez votre carte au concierge — il vous répond sous 15 minutes.</small>`
-      : `Votre demande est prête.
-         <small>Envoyez-la sur WhatsApp — le concierge bloque le créneau à réception.</small>`;
+    $("#xp-done-lead").innerHTML = sent
+      ? `C'est fait — votre confirmation est <b>déjà dans votre WhatsApp</b>.
+         <small>Référence ${state.reference}. Répondez au concierge pour toute modification.</small>`
+      : state.reference
+        ? `Votre créneau est retenu sous la référence <b>${state.reference}</b>.
+           <small>WhatsApp s'ouvre avec votre carte, déjà rédigée — envoyez-la telle quelle.</small>`
+        : `Votre demande est prête.
+           <small>Envoyez-la sur WhatsApp — le concierge bloque le créneau à réception.</small>`;
+  }
+
+  /* Aperçu du message reçu quand l'envoi serveur a eu lieu. */
+  function customerEcho() {
+    return [
+      "LEAKS ✦ Votre essayage privé est retenu.",
+      "",
+      `${frDate(state.date)} · ${state.time} — LEAKS Studio, Abidjan`,
+      `Référence ${state.reference}`,
+      "",
+      "Répondez à ce message — votre concierge vous lit."
+    ].join("\n");
   }
 
   /* ── La carte de rendez-vous (colonne vivante) ─────────────── */
