@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { orderStatusMessage, bookingConfirmedMessage } from "../services/whatsapp.mjs";
 
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(8).max(200) });
 const updateSchema = z.object({
@@ -7,7 +8,7 @@ const updateSchema = z.object({
   adminNote: z.string().trim().max(1000).optional().default("")
 });
 
-export async function adminRoutes(app, { db, auth }) {
+export async function adminRoutes(app, { db, auth, config, notify }) {
   app.post("/api/admin/login", {
     config: { rateLimit: { max: 5, timeWindow: "15 minutes" } }
   }, async (request, reply) => {
@@ -76,8 +77,18 @@ export async function adminRoutes(app, { db, auth }) {
       `update bookings set status=$1 where reference=$2 returning *`,
       [parsed.data.status, request.params.reference]
     );
-    if (!result.rows[0]) return reply.code(404).send({ error: "Réservation introuvable." });
-    return { booking: result.rows[0] };
+    const booking = result.rows[0];
+    if (!booking) return reply.code(404).send({ error: "Réservation introuvable." });
+
+    /* Le concierge confirme → le client le sait, tout seul. */
+    if (parsed.data.status === "confirmed" && notify) {
+      await notify.enqueue("booking-confirmed", booking.customer_phone, bookingConfirmedMessage({
+        reference: booking.reference,
+        date: booking.booking_date instanceof Date ? booking.booking_date.toISOString().slice(0, 10) : String(booking.booking_date),
+        time: booking.booking_time
+      }), booking.reference);
+    }
+    return { booking };
   });
 
   app.patch("/api/admin/orders/:reference", { preHandler: auth.authenticate }, async (request, reply) => {
@@ -96,7 +107,15 @@ export async function adminRoutes(app, { db, auth }) {
        where reference=$4 returning *`,
       [status, paymentStatus, parsed.data.adminNote || null, request.params.reference]
     );
-    if (!result.rows[0]) return reply.code(404).send({ error: "Commande introuvable." });
-    return { order: result.rows[0] };
+    const order = result.rows[0];
+    if (!order) return reply.code(404).send({ error: "Commande introuvable." });
+
+    /* Prête / expédiée / livrée → le client est prévenu sur WhatsApp.
+       Dédoublonnage par (statut, référence) : une seule fois par étape. */
+    if (notify && status !== current.rows[0].status) {
+      const message = orderStatusMessage(status, order);
+      if (message) await notify.enqueue(`order-${status}`, order.customer_phone, message, order.reference);
+    }
+    return { order };
   });
 }

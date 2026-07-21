@@ -18,6 +18,8 @@ import { createDatabase } from "./db.mjs";
 import { loadCatalog } from "./catalog.mjs";
 import { createPayDunyaClient } from "./payments/paydunya.mjs";
 import { createAuth } from "./auth.mjs";
+import { createWhatsAppNotifier } from "./services/whatsapp.mjs";
+import { createNotificationCenter } from "./services/notifications.mjs";
 import { storefrontRoutes } from "./routes/storefront.mjs";
 import { adminRoutes } from "./routes/admin.mjs";
 
@@ -34,13 +36,22 @@ export async function buildApp(overrides = {}) {
   await app.register(rateLimit, { global: true, max: 120, timeWindow: "1 minute" });
 
   const auth = createAuth({ db, config });
-  await storefrontRoutes(app, { db, catalog, config, paydunya });
-  await adminRoutes(app, { db, auth });
+  const whatsapp = overrides.whatsapp || createWhatsAppNotifier(config, app.log);
+  const notify = overrides.notify || createNotificationCenter({ db, whatsapp, logger: app.log });
+  await storefrontRoutes(app, { db, catalog, config, paydunya, whatsapp, notify });
+  await adminRoutes(app, { db, auth, config, notify });
+  notify.start();
 
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   await app.register(fastifyStatic, {
     root,
     wildcard: false,
+    setHeaders(res, filePath) {
+      /* Les images produits/campagne ne bougent jamais ; le code un peu. */
+      if (/[\\/]assets[\\/]/.test(filePath)) res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      else if (/\.(css|js)$/.test(filePath)) res.setHeader("Cache-Control", "public, max-age=3600");
+      else res.setHeader("Cache-Control", "no-cache");
+    },
     allowedPath(pathName) {
       return pathName === "/" || pathName === "/index.html" || pathName === "/gallery.html" || pathName === "/checkout.html" || pathName === "/confirmation.html" ||
         pathName === "/admin.html" || pathName === "/campagne.html" || pathName === "/manifeste.html" ||
@@ -67,6 +78,7 @@ export async function buildApp(overrides = {}) {
   });
 
   app.addHook("onClose", async () => {
+    notify.stop();
     if (!overrides.db) await db.end();
   });
   return app;

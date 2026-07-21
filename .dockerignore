@@ -1,5 +1,10 @@
 .env
+.env.*
+!.env.example
 node_modules
 output
 .git
 *.zip
+backup-minimal-homepage
+.DS_Store
+tests

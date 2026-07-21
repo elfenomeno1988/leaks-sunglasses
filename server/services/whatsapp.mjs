@@ -43,6 +43,90 @@ export function conciergeAlert(b) {
   ].filter((l) => l !== null).join("\n");
 }
 
+export function bookingConfirmedMessage(b) {
+  return [
+    "LEAKS ✦ Votre créneau est confirmé.",
+    "",
+    `${frDate(b.date)} · ${b.time} — LEAKS Studio, Abidjan`,
+    `Référence ${b.reference}`,
+    "",
+    "Le concierge vous attend. Un empêchement ?",
+    "Répondez simplement à ce message."
+  ].join("\n");
+}
+
+export function bookingReminderMessage(b) {
+  return [
+    "LEAKS ✦ C'est aujourd'hui.",
+    "",
+    `Votre essayage privé vous attend à ${b.time} —`,
+    "LEAKS Studio, Abidjan. Le studio est à vous,",
+    "quarante-cinq minutes, les sept signatures posées.",
+    "",
+    `Référence ${b.reference}. À tout à l'heure.`
+  ].join("\n");
+}
+
+export function orderPaidMessage(o) {
+  return [
+    "LEAKS ✦ Votre commande est confirmée.",
+    "",
+    `${o.product_name} — ${o.variant_name}`,
+    `Référence ${o.reference}`,
+    "",
+    o.delivery_method === "pickup"
+      ? "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle vous attend au studio."
+      : "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle part vers vous, à Abidjan.",
+    "",
+    "Chaque paire est gravée de son numéro — la vôtre existe déjà."
+  ].join("\n");
+}
+
+const ORDER_STATUS_LINES = {
+  ready: (o) => [
+    "LEAKS ✦ Votre paire vous attend.",
+    "",
+    `${o.product_name} — ${o.variant_name} · ${o.reference}`,
+    "",
+    "Elle est posée au studio, gravée à votre numéro.",
+    "LEAKS Studio — Abidjan · Lun – Sam · 10 h → 19 h.",
+    "Présentez simplement ce message."
+  ],
+  shipped: (o) => [
+    "LEAKS ✦ Votre paire est en route.",
+    "",
+    `${o.product_name} — ${o.variant_name} · ${o.reference}`,
+    "",
+    "Livraison à Abidjan en cours. Le livreur vous",
+    "appellera à l'approche."
+  ],
+  delivered: (o) => [
+    "LEAKS ✦ Elle est à vous.",
+    "",
+    `${o.product_name} — ${o.variant_name} · ${o.reference}`,
+    "",
+    "Portez-la bien. Une question, un ajustage —",
+    "le concierge reste à votre écoute, toujours ici."
+  ]
+};
+
+export function orderStatusMessage(status, order) {
+  const lines = ORDER_STATUS_LINES[status];
+  return lines ? lines(order).join("\n") : null;
+}
+
+export function orderAlert(o) {
+  return [
+    `✦ Commande payée — ${o.reference}`,
+    "",
+    `${o.product_name} — ${o.variant_name} × ${o.quantity}`,
+    `${o.total_amount} F · ${o.delivery_method === "pickup" ? "Retrait studio" : "Livraison Abidjan"}`,
+    `${o.customer_name} — ${o.customer_phone}`,
+    o.delivery_address ? `Adresse : ${o.delivery_address}` : null,
+    o.customer_note ? `Note : ${o.customer_note}` : null
+  ].filter((l) => l !== null).join("\n");
+}
+
 /* Le message que le client envoie lui-même quand l'API n'est pas là.
    Servi à l'interface pour que desktop et mobile parlent d'une voix. */
 export function handoffMessage(b) {

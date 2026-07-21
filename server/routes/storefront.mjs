@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createOrder, publicOrder } from "../services/orders.mjs";
 import { createBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
-import { createWhatsAppNotifier, handoffMessage } from "../services/whatsapp.mjs";
+import { handoffMessage, customerMessage, conciergeAlert, orderPaidMessage, orderAlert } from "../services/whatsapp.mjs";
 
 const trackingSchema = z.object({
   reference: z.string().min(8).max(40),
@@ -9,7 +9,7 @@ const trackingSchema = z.object({
 });
 
 export async function storefrontRoutes(app, deps) {
-  const { db, catalog, config, paydunya } = deps;
+  const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
   app.get("/api/catalog", async () => ({
     currency: catalog.currency,
@@ -35,8 +35,6 @@ export async function storefrontRoutes(app, deps) {
     return { date, booked: await bookedSlots({ db, date }) };
   });
 
-  const whatsapp = createWhatsAppNotifier(config, app.log);
-
   app.post("/api/bookings", {
     config: { rateLimit: { max: 6, timeWindow: "10 minutes" } }
   }, async (request, reply) => {
@@ -49,13 +47,16 @@ export async function storefrontRoutes(app, deps) {
       phone: row.customer_phone,
       note: row.customer_note || ""
     };
-    const { delivery } = await whatsapp.notifyBooking(booking);
+    /* La confirmation et l'alerte passent par la file : envoi immédiat,
+       reprises automatiques, jamais deux fois (dédoublonnage par référence). */
+    await notify.enqueue("booking-confirmation", booking.phone, customerMessage(booking), booking.reference);
+    await notify.enqueue("booking-alert", config.WHATSAPP_CONCIERGE_NUMBER, conciergeAlert(booking), booking.reference);
     return reply.code(201).send({
       booking: publicBooking(row),
       whatsapp: {
-        delivery,                              // "sent" (API Cloud) ou "handoff" (wa.me)
+        delivery: whatsapp.enabled ? "sent" : "handoff", // file ≈ envoyé (quelques secondes)
         conciergeNumber: config.WHATSAPP_NUMBER,
-        handoffText: handoffMessage(booking)   // la carte, déjà écrite
+        handoffText: handoffMessage(booking)             // la carte, déjà écrite
       }
     });
   });
@@ -78,9 +79,10 @@ export async function storefrontRoutes(app, deps) {
         (value.messages || []).forEach((m) => {
           request.log.info({ from: m.from, type: m.type, text: m.text?.body }, "WhatsApp — message entrant");
         });
-        (value.statuses || []).forEach((s) => {
+        for (const s of value.statuses || []) {
           request.log.info({ id: s.id, status: s.status, to: s.recipient_id }, "WhatsApp — statut");
-        });
+          await notify.recordStatus(s.id, s.status); // delivered / read / failed sur la file
+        }
       }
     }
     return reply.code(200).send({ received: true });
@@ -112,7 +114,7 @@ export async function storefrontRoutes(app, deps) {
     if (!paydunya.verifyCallbackHash(verified.hash)) {
       return reply.code(400).send({ error: "Confirmation invalide." });
     }
-    await syncPayment(db, verified);
+    await syncPayment(db, verified, { notify, config });
     return reply.code(200).send({ received: true });
   });
 
@@ -122,7 +124,7 @@ export async function storefrontRoutes(app, deps) {
       if (!token) return reply.redirect("/");
       try {
         const verified = await paydunya.confirmInvoice(token);
-        if (paydunya.verifyCallbackHash(verified.hash)) await syncPayment(db, verified);
+        if (paydunya.verifyCallbackHash(verified.hash)) await syncPayment(db, verified, { notify, config });
       } catch (error) {
         request.log.warn({ error }, "Unable to confirm PayDunya return immediately");
       }
@@ -135,15 +137,23 @@ export async function storefrontRoutes(app, deps) {
   }
 }
 
-export async function syncPayment(db, provider) {
+export async function syncPayment(db, provider, hooks = {}) {
   const invoice = provider.invoice || {};
   const status = String(invoice.status || "pending").toLowerCase();
   const mapped = status === "completed" ? "paid" : status === "failed" ? "failed" : status === "cancelled" ? "cancelled" : "pending";
   const orderStatus = mapped === "paid" ? "confirmed" : mapped === "cancelled" ? "cancelled" : "pending_payment";
   const paidAt = mapped === "paid" ? new Date() : null;
-  await db.query(
+  const result = await db.query(
     `update orders set payment_status=$1, status=$2, receipt_url=$3, provider_response=$4,
-      paid_at=coalesce(paid_at,$5) where provider_token=$6`,
+      paid_at=coalesce(paid_at,$5) where provider_token=$6 returning *`,
     [mapped, orderStatus, invoice.receipt_url || null, provider, paidAt, invoice.token]
   );
+
+  /* Paiement confirmé → WhatsApp automatique au client + au concierge.
+     La file dédoublonne par référence : jamais deux messages pour un même paiement. */
+  const order = result.rows[0];
+  if (order && mapped === "paid" && hooks.notify) {
+    await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference);
+    await hooks.notify.enqueue("order-paid-alert", hooks.config?.WHATSAPP_CONCIERGE_NUMBER, orderAlert(order), order.reference);
+  }
 }

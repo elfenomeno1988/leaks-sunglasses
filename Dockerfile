@@ -1,3 +1,4 @@
+# LEAKS — image de production
 FROM node:22-alpine AS dependencies
 WORKDIR /app
 COPY package*.json ./
@@ -10,4 +11,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 EXPOSE 3000
 USER node
-CMD ["node", "server/app.mjs"]
+
+# Les migrations se rejouent à chaque démarrage (idempotentes),
+# puis le serveur prend le trafic.
+CMD ["sh", "-c", "node server/scripts/migrate.mjs && node server/app.mjs"]

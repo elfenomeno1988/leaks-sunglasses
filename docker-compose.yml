@@ -1,0 +1,32 @@
+# LEAKS — pile complète en local ou sur un VPS :  docker compose up -d
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://leaks:leaks@db:5432/leaks
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: leaks
+      POSTGRES_PASSWORD: leaks
+      POSTGRES_DB: leaks
+    volumes:
+      - leaks-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leaks"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  leaks-pgdata:
