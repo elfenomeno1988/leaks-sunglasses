@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    LEAKS — L'essayage privé · expérience concierge
-   Quatre gestes : les pièces, le moment, vous, WhatsApp.
+   Trois gestes : le moment, vous, WhatsApp.
    Créneaux réels (API), carte de rendez-vous, fichier calendrier.
    Partage CONFIG / $ / $$ / reducedMotion avec home.js.
    ════════════════════════════════════════════════════════════ */
@@ -14,14 +14,10 @@
   const DAYS_SHOWN = 12;
 
   const state = {
-    models: new Set(),
     date: "", time: "",
     name: "", phone: "", note: "",
     reference: "", offline: false
   };
-
-  const models = window.LEAKS_MODELS || [];
-  const modelName = (id) => models.find((m) => m.id === id)?.name || id;
 
   /* ── Utilitaires date (le studio vit en UTC, comme Abidjan) ── */
 
@@ -36,7 +32,7 @@
 
   /* ── Navigation entre panneaux ─────────────────────────────── */
 
-  const ORDER = ["pieces", "moment", "contact", "done"];
+  const ORDER = ["moment", "contact", "done"];
   const railBtns = $$(".xp-step", root);
   const panels = $$(".xp-panel", root);
 
@@ -62,38 +58,7 @@
   $$("[data-back]", root).forEach((b) => b.addEventListener("click", () => goTo(b.dataset.back)));
   railBtns.forEach((b) => b.addEventListener("click", () => { if (!b.disabled) goTo(b.dataset.go); }));
 
-  /* ── 01 · Les pièces ───────────────────────────────────────── */
-
-  const modelsWrap = $("#xp-models");
-  const countLabel = $("#xp-count");
-
-  models.forEach((m) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "xp-model";
-    btn.setAttribute("aria-pressed", "false");
-    btn.innerHTML = `
-      <img src="${m.colors[0].image}" alt="" loading="lazy">
-      <span class="xp-model-name">${m.name}</span>
-      <span class="xp-model-sku">${m.sku} · ${m.colors.length} coloris</span>`;
-    btn.addEventListener("click", () => {
-      if (state.models.has(m.id)) state.models.delete(m.id);
-      else state.models.add(m.id);
-      btn.classList.toggle("is-active", state.models.has(m.id));
-      btn.setAttribute("aria-pressed", String(state.models.has(m.id)));
-      syncPieces();
-    });
-    modelsWrap.appendChild(btn);
-  });
-
-  function syncPieces() {
-    const n = state.models.size;
-    countLabel.textContent = n === 0 ? "Plateau complet"
-      : n === 1 ? "1 pièce préparée" : `${n} pièces préparées`;
-    ticket();
-  }
-
-  /* ── 02 · Le moment ────────────────────────────────────────── */
+  /* ── 01 · Le moment ────────────────────────────────────────── */
 
   const daysWrap = $("#xp-days");
   const slotsWrap = $("#xp-slots");
@@ -239,7 +204,7 @@
         body: JSON.stringify({
           date: state.date, time: state.time,
           name: state.name, phone: prettyPhone(),
-          note: state.note, models: [...state.models]
+          note: state.note
         })
       });
       const data = await res.json().catch(() => ({}));
@@ -277,9 +242,6 @@
       "",
       `— ${frDate(state.date)} à ${state.time}`,
       `— ${state.name} · ${prettyPhone()}`,
-      state.models.size
-        ? `— Pièces préparées : ${[...state.models].map(modelName).join(", ")}`
-        : `— Plateau complet (les sept signatures)`,
       state.note ? `— Note : ${state.note}` : null,
       "",
       "Merci de me confirmer le créneau."
@@ -324,9 +286,6 @@
     $("#tk-date").textContent = state.date ? frDate(state.date) : "—";
     $("#tk-time").textContent = state.time || "—";
     $("#tk-name").textContent = state.name || "—";
-    $("#tk-models").textContent = state.models.size
-      ? [...state.models].map(modelName).join(", ")
-      : "Plateau complet";
     $("#tk-status").innerHTML = state.reference
       ? "Créneau retenu.<br>Envoyez la carte sur WhatsApp pour confirmation."
       : state.time
@@ -335,6 +294,5 @@
   }
 
   buildDays();
-  syncPieces();
   ticket();
 })();

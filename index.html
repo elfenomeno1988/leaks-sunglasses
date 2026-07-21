@@ -212,31 +212,19 @@
 
       <div class="xp r" id="xp">
         <nav class="xp-rail" aria-label="Étapes de la réservation">
-          <button type="button" class="xp-step is-active" data-go="pieces"><em>01</em><span>Les pièces</span></button>
-          <button type="button" class="xp-step" data-go="moment" disabled><em>02</em><span>Le moment</span></button>
-          <button type="button" class="xp-step" data-go="contact" disabled><em>03</em><span>Vous</span></button>
-          <button type="button" class="xp-step" data-go="done" disabled><em>04</em><span>WhatsApp</span></button>
+          <button type="button" class="xp-step is-active" data-go="moment"><em>01</em><span>Le moment</span></button>
+          <button type="button" class="xp-step" data-go="contact" disabled><em>02</em><span>Vous</span></button>
+          <button type="button" class="xp-step" data-go="done" disabled><em>03</em><span>WhatsApp</span></button>
         </nav>
 
         <div class="xp-body">
 
-          <section class="xp-panel is-active" data-panel="pieces" aria-label="Les pièces à préparer">
-            <p class="xp-lead">Dites au concierge ce qu'il pose sur le plateau avant votre arrivée.
-            <small>Optionnel — les sept signatures vous attendent de toute façon.</small></p>
-            <div class="xp-models" id="xp-models" role="group" aria-label="Choisir des modèles"></div>
-            <div class="xp-actions">
-              <span class="xp-count" id="xp-count" aria-live="polite">Plateau complet</span>
-              <button type="button" class="btn btn-ink" data-next="moment">Continuer</button>
-            </div>
-          </section>
-
-          <section class="xp-panel" data-panel="moment" aria-label="La date et l'heure">
-            <p class="xp-lead">Choisissez votre moment.
+          <section class="xp-panel is-active" data-panel="moment" aria-label="La date et l'heure">
+            <p class="xp-lead">Choisissez votre moment — les sept signatures vous attendent.
             <small>Lun – Sam · 10 h → 19 h. Chaque créneau n'est proposé qu'à une seule personne.</small></p>
             <div class="xp-days" id="xp-days" role="group" aria-label="Choisir un jour"></div>
             <div class="xp-slots" id="xp-slots" aria-live="polite"></div>
             <div class="xp-actions">
-              <button type="button" class="btn btn-ghost" data-back="pieces">Retour</button>
               <button type="button" class="btn btn-ink" data-next="contact" id="xp-to-contact" disabled>Continuer</button>
             </div>
           </section>
@@ -294,7 +282,6 @@
           <dl class="summary-list">
             <div><dt>Date</dt><dd id="tk-date">—</dd></div>
             <div><dt>Heure</dt><dd id="tk-time">—</dd></div>
-            <div><dt>Pièces</dt><dd id="tk-models">Plateau complet</dd></div>
             <div><dt>Nom</dt><dd id="tk-name">—</dd></div>
           </dl>
           <p class="ticket-status" id="tk-status">Composez votre rendez-vous —<br>la carte s'écrit avec vous.</p>
@@ -367,7 +354,6 @@
     </svg>
   </a>
 
-  <script src="js/catalog-data.js"></script>
   <script src="js/home.js"></script>
   <script src="js/rdv.js"></script>
 </body>
