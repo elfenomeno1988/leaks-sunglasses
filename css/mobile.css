@@ -13,8 +13,7 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
-  --sans: "Inter", system-ui, sans-serif;
-  --tech: "Michroma", monospace;
+  --sans: "Instrument Sans", system-ui, sans-serif;
 
   --ah: 52px;                                   /* en-tête */
   --tb: calc(56px + env(safe-area-inset-bottom)); /* barre d'onglets */
@@ -27,7 +26,7 @@ html { height: 100%; }
 
 body {
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
   background: var(--paper);
@@ -45,10 +44,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
 ::selection { background: var(--ink); color: var(--paper); }
 
 .tag {
-  font-family: var(--tech);
-  font-size: 8.5px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+
+  font-size: 12px;
+
+
   color: var(--mute);
 }
 
@@ -106,10 +105,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
 .sc-head { padding: 22px 20px 16px; }
 
 .sc-head h1 {
-  font-size: 16px;
+  font-size: 21px;
   font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+
+
 }
 .sc-head .tag { display: block; margin-top: 5px; }
 
@@ -120,10 +119,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-size: 10.5px;
+  font-size: 14.5px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+
+
   padding: 16px 22px;
   border: 1px solid var(--ink);
   transition: transform 0.15s var(--ease), opacity 0.2s;
@@ -145,7 +144,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .drop-logo { width: min(300px, 78%); margin: 22px 0 14px; }
 
-.drop-line { font-size: 13px; color: var(--mute); }
+.drop-line { font-size: 15.5px; color: var(--mute); }
 
 .count {
   display: flex;
@@ -153,8 +152,8 @@ button { font: inherit; color: inherit; background: none; border: none; }
   margin-top: 26px;
   font-variant-numeric: tabular-nums;
 }
-.count b { display: block; font-family: var(--tech); font-size: 19px; font-weight: 400; line-height: 1; }
-.count i { display: block; font-style: normal; font-size: 8px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--mute); margin-top: 6px; }
+.count b { display: block; font-size: 27px; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+.count i { display: block; font-style: normal; font-size: 13.5px; color: var(--mute); margin-top: 6px; }
 
 .drop-cta {
   display: grid;
@@ -172,10 +171,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
   display: flex;
   justify-content: space-between;
   padding: 12px 16px;
-  font-family: var(--tech);
-  font-size: 7.5px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
+
+  font-size: 13.5px;
+
+
   color: var(--white);
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.45));
 }
@@ -207,9 +206,9 @@ button { font: inherit; color: inherit; background: none; border: none; }
   border-top: 1px solid var(--hairline);
 }
 
-.f-name { font-size: 12px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
+.f-name { font-size: 15px; font-weight: 500; }
 .f-name .idx { color: var(--mute); font-weight: 500; margin-right: 6px; font-variant-numeric: tabular-nums; }
-.f-sub { display: block; margin-top: 2px; font-size: 11.5px; color: var(--mute); }
+.f-sub { display: block; margin-top: 2px; font-size: 13.5px; color: var(--mute); }
 .f-price { font-size: 12.5px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ── Écran · Modèle ─────────────────────────────────────────── */
@@ -254,7 +253,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .m-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 
-.m-row h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.m-row h1 { font-size: 17px; font-weight: 500; }
 
 .m-price { font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
@@ -278,7 +277,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
   padding: 7px 12px 7px 7px;
   border: 1px solid var(--hairline-strong);
   background: var(--white);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -296,10 +295,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
 }
 .m-lines dt {
   color: var(--mute);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+
+
   align-self: center;
 }
 .m-lines dd { font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -330,9 +329,9 @@ body[data-view="model"] .m-actions { transform: none; }
   padding: 0 20px 18px;
 }
 .rdv-steps span {
-  font-family: var(--tech);
-  font-size: 8.5px;
-  letter-spacing: 0.2em;
+
+  font-size: 12px;
+
   color: var(--mute);
   transition: color 0.3s;
 }
@@ -345,7 +344,7 @@ body[data-view="model"] .m-actions { transform: none; }
   .rdv-panel.is-active { animation: sc-in 0.3s var(--ease); }
 }
 
-.lead { font-size: 14px; margin-bottom: 18px; max-width: 34ch; }
+.lead { font-size: 16px; margin-bottom: 18px; max-width: 34ch; }
 
 .days {
   display: flex;
@@ -369,9 +368,9 @@ body[data-view="model"] .m-actions { transform: none; }
   border: 1px solid var(--hairline);
   background: var(--white);
 }
-.day em { font-style: normal; font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute); }
+.day em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--mute); }
 .day b { font-size: 17px; font-weight: 400; font-variant-numeric: tabular-nums; }
-.day span { font-size: 9.5px; color: var(--mute); }
+.day span { font-size: 12px; color: var(--mute); }
 .day.is-active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .day:disabled { opacity: 0.38; }
 
@@ -390,16 +389,16 @@ body[data-view="model"] .m-actions { transform: none; }
 }
 .slot.is-active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .slot:disabled { opacity: 0.32; }
-.slot i { display: block; font-style: normal; font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+.slot i { display: block; font-style: normal; font-size: 13.5px; }
 .hint { font-size: 12px; color: var(--mute); }
 
 .field {
   display: block;
   margin-bottom: 14px;
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+
+
   color: var(--mute);
 }
 .field small { text-transform: none; letter-spacing: 0; font-weight: 400; }
@@ -461,9 +460,9 @@ body[data-view="model"] .m-actions { transform: none; }
 @keyframes pulse { 50% { opacity: 0.55; } }
 
 .ticket img { height: 12px; width: auto; margin-bottom: 12px; }
-.ticket-ref { font-family: var(--tech); font-size: 14px; letter-spacing: 0.16em; margin: 8px 0 6px; }
+.ticket-ref { font-size: 14px; margin: 8px 0 6px; }
 .ticket-when { font-size: 13.5px; font-weight: 500; }
-.ticket-place { margin-top: 10px; font-size: 11.5px; color: var(--mute); }
+.ticket-place { margin-top: 10px; font-size: 13.5px; color: var(--mute); }
 
 /* ── Écran · Studio ─────────────────────────────────────────── */
 
@@ -512,7 +511,7 @@ body[data-view="model"] .tabbar { transform: translateY(110%); }
 }
 .tabbar a:active { opacity: 0.55; }
 .tabbar svg { width: 20px; height: 20px; }
-.tabbar span { font-size: 8.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.tabbar span { font-size: 12px; font-weight: 600; }
 .tabbar a.is-active { color: var(--ink); }
 
 /* Grands écrans : l'app reste une colonne de téléphone, centrée. */

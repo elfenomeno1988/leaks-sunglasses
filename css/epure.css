@@ -12,15 +12,13 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
-  /* ── Registre discret, hérité du Drop 001 d'origine ─────────
-     · Inter            → tout le texte. Petit, calme, précis.
-     · Michroma         → la gravure : chiffres du compte à rebours,
-       tags, références. Jamais une phrase.
-     · Instrument Serif → réservé aux pages éditoriales
-       (manifeste, campagne). La page d'accueil ne crie pas.       */
+  /* ── Une seule voix : Instrument ────────────────────────────
+     · Instrument Sans  → tout. Trois graisses (400/500/600),
+       casse de phrase, interlettrage neutre, corps 16.
+     · Instrument Serif → uniquement l'éditorial (manifeste,
+       campagne). La hiérarchie vient de l'espace, pas de l'ornement. */
   --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Inter", system-ui, sans-serif;
-  --tech: "Michroma", monospace;
+  --sans: "Instrument Sans", system-ui, sans-serif;
 
 
   --gutter: clamp(20px, 3.4vw, 48px);
@@ -36,8 +34,8 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--sans);
   font-weight: 400;
-  font-size: 15px;
-  line-height: 1.66;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
@@ -59,13 +57,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   padding-inline: var(--gutter);
 }
 
-/* ── Micro-label (Michroma, seul héritage tech) ─────────────── */
+/* ── Micro-label ────────────────────────────────────────────── */
 
 .tag {
-  font-family: var(--tech);
-  font-size: 9px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
+  font-size: 12.5px;
+
+
   color: var(--mute);
 }
 
@@ -101,10 +98,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .nav-links {
   display: flex;
   gap: clamp(18px, 3vw, 40px);
-  font-size: 10.5px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+
+
 }
 
 .nav-links a { position: relative; padding-block: 4px; color: var(--mute); transition: color 0.3s; }
@@ -120,10 +117,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .nav-links a:hover::after { right: 0; }
 
 .nav-cta {
-  font-size: 10.5px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+
+
   border-bottom: 1px solid var(--ink);
   padding-bottom: 3px;
   transition: opacity 0.3s;
@@ -147,8 +144,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 /* La ligne du hero murmure — comme sur le Drop 001 d'origine. */
 .hero-line {
-  font-size: 13.5px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.65;
   font-weight: 400;
   color: var(--mute);
   max-width: 44ch;
@@ -173,19 +170,20 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .count b {
   display: block;
-  font-family: var(--tech);
-  font-size: clamp(19px, 2vw, 28px);
+
+  font-size: clamp(26px, 2.6vw, 36px);
   font-weight: 400;
-  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+
   line-height: 1;
 }
 
 .count i {
   display: block;
   font-style: normal;
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+  font-size: 13px;
+
+
   color: var(--mute);
   margin-top: 2px;
 }
@@ -199,10 +197,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 10.5px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+
+
   padding: 15px 26px;
   border: 1px solid var(--ink);
   transition: background 0.35s var(--ease), color 0.35s var(--ease), opacity 0.3s;
@@ -230,10 +228,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+
+
   color: var(--white);
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.42));
 }
@@ -285,14 +283,14 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .section-head h2 {
-  font-size: clamp(15px, 1.5vw, 19px);
+  font-size: clamp(20px, 2.2vw, 26px);
   font-weight: 500;
-  letter-spacing: 0.18em;
+
   line-height: 1.3;
-  text-transform: uppercase;
+
 }
 
-.section-head .note { font-size: 12px; color: var(--mute); text-align: right; }
+.section-head .note { font-size: 13px; color: var(--mute); text-align: right; }
 
 /* ── Collection ─────────────────────────────────────────────── */
 
@@ -339,23 +337,23 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .card-row h3 {
-  font-size: 12.5px;
+  font-size: 14.5px;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.card-row .idx { font-size: 10px; color: var(--mute); font-variant-numeric: tabular-nums; margin-right: 2px; }
+.card-row .idx { font-size: 12.5px; color: var(--mute); font-variant-numeric: tabular-nums; margin-right: 2px; }
 
 .card-sub {
   display: flex;
   justify-content: space-between;
   gap: 14px;
   margin-top: 3px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--mute);
 }
 
@@ -391,10 +389,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   justify-content: space-between;
   align-items: center;
   padding: 13px 16px;
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+
+
   color: var(--white);
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
   opacity: 0;
@@ -426,10 +424,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .rule { border-top: 1px solid var(--hairline-strong); padding-top: 16px; }
 .rule b {
   display: block;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+
+
   margin-bottom: 8px;
 }
 .rule p { font-size: 13px; color: var(--mute); max-width: 30ch; }
@@ -467,10 +465,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .summary-list dt {
   color: var(--mute);
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+
+
   align-self: center;
 }
 .summary-list dd { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
@@ -484,8 +482,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .summary-total strong { font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.summary-note { margin-top: 14px; font-size: 12px; color: var(--mute); }
-.summary-place { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--mute); }
+.summary-note { margin-top: 14px; font-size: 13px; color: var(--mute); }
+.summary-place { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--mute); }
 
 /* Formulaire */
 
@@ -501,15 +499,15 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .step legend em {
-  font-family: var(--tech);
+
   font-style: normal;
-  font-size: 8.5px;
+  font-size: 12.5px;
   color: var(--mute);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.24em;
+
 }
 
-.step legend small { font-weight: 400; font-size: 12px; color: var(--mute); }
+.step legend small { font-weight: 400; font-size: 13px; color: var(--mute); }
 
 .step.has-error legend { color: #b3261e; }
 
@@ -531,15 +529,15 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .choice:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 
 .choice-name { display: block; font-size: 13px; font-weight: 600; }
-.choice-sub { display: block; font-size: 11.5px; color: var(--mute); margin-top: 3px; }
-.choice-price { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; margin-top: 10px; text-transform: uppercase; }
+.choice-sub { display: block; font-size: 13px; color: var(--mute); margin-top: 3px; }
+.choice-price { display: block; font-size: 13px; font-weight: 600; margin-top: 10px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .chip {
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.04em;
+
   padding: 9px 15px;
   border: 1px solid var(--hairline-strong);
   background: var(--white);
@@ -560,10 +558,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .field label {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+
+
   color: var(--mute);
   margin-bottom: 7px;
 }
@@ -583,7 +581,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .field input:focus,
 .field textarea:focus { outline: none; border-color: var(--ink); }
 
-.field-hint { font-size: 12px; color: var(--mute); margin-top: 7px; }
+.field-hint { font-size: 13px; color: var(--mute); margin-top: 7px; }
 .field-hint.closed { color: #b3261e; }
 
 .form-errors {
@@ -603,7 +601,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   margin-top: 18px;
 }
 
-.form-microcopy { font-size: 12px; color: var(--mute); margin-top: 14px; max-width: 52ch; }
+.form-microcopy { font-size: 13px; color: var(--mute); margin-top: 14px; max-width: 52ch; }
 
 .btn-submit { width: 100%; justify-content: center; padding-block: 18px; }
 
@@ -621,7 +619,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   align-items: baseline;
   gap: 20px;
   padding-block: 20px;
-  font-size: 14.5px;
+  font-size: 17px;
   font-weight: 500;
   line-height: 1.4;
   transition: color 0.3s;
@@ -663,9 +661,9 @@ details[open] .faq-x { transform: rotate(45deg); }
   margin-top: clamp(32px, 4vw, 56px);
   padding-top: 18px;
   border-top: 1px solid var(--hairline);
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  font-size: 12.5px;
+
+
   color: var(--mute);
 }
 
@@ -819,9 +817,9 @@ details[open] .faq-x { transform: rotate(45deg); }
 .look-meta h2 {
   font-size: clamp(16px, 1.7vw, 21px);
   font-weight: 500;
-  letter-spacing: 0.14em;
+
   line-height: 1.3;
-  text-transform: uppercase;
+
   margin-top: 14px;
 }
 
@@ -833,7 +831,7 @@ details[open] .faq-x { transform: rotate(45deg); }
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 12px;
+  font-size: 13px;
   margin-top: 22px;
   padding-block: 12px;
   border-top: 1px solid var(--hairline-strong);
@@ -892,8 +890,8 @@ details[open] .faq-x { transform: rotate(45deg); }
   font-style: normal;
   font-size: 8px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+
+
   color: var(--mute);
   white-space: nowrap;
   overflow: hidden;
@@ -905,9 +903,9 @@ details[open] .faq-x { transform: rotate(45deg); }
 .g-panel h1 {
   font-size: clamp(18px, 2vw, 24px);
   font-weight: 500;
-  letter-spacing: 0.16em;
+
   line-height: 1.2;
-  text-transform: uppercase;
+
 }
 
 .g-panel .desc { font-size: 14px; color: var(--mute); max-width: 44ch; margin-top: 10px; }
@@ -923,10 +921,10 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 .g-lines dt {
   color: var(--mute);
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+
+
   align-self: center;
 }
 .g-lines dd { font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -947,8 +945,8 @@ details[open] .faq-x { transform: rotate(45deg); }
 .g-swatch.is-active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .g-swatch img { width: 44px; height: 44px; object-fit: contain; flex: none; }
 .g-swatch span { display: grid; min-width: 0; }
-.g-swatch strong { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.g-swatch em { font-style: normal; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+.g-swatch strong { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-swatch em { font-style: normal; font-size: 9px; color: var(--mute); }
 
 .g-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 
@@ -975,11 +973,11 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 
 .co-step legend em {
-  font-family: var(--tech);
+
   font-style: normal;
-  font-size: 8.5px;
+  font-size: 12.5px;
   color: var(--mute);
-  letter-spacing: 0.24em;
+
   font-variant-numeric: tabular-nums;
 }
 
@@ -989,10 +987,10 @@ details[open] .faq-x { transform: rotate(45deg); }
 .co-fields label {
   display: grid;
   gap: 7px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+
+
   color: var(--mute);
 }
 
@@ -1057,14 +1055,14 @@ details[open] .faq-x { transform: rotate(45deg); }
 .co-option svg { width: 21px; height: 21px; flex: none; stroke: var(--ink); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
 .co-option strong { display: block; font-size: 13px; font-weight: 600; color: var(--ink); }
-.co-option small { display: block; font-size: 11px; color: var(--mute); margin-top: 1px; }
+.co-option small { display: block; font-size: 13px; color: var(--mute); margin-top: 1px; }
 
 .co-option .co-badge {
   margin-left: auto;
-  font-size: 8.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+
+
   padding: 4px 8px;
   background: var(--ink);
   color: var(--paper);
@@ -1092,8 +1090,8 @@ details[open] .faq-x { transform: rotate(45deg); }
 .co-card h2 {
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+
+
   margin-top: 10px;
 }
 .co-card .desc { font-size: 12.5px; color: var(--mute); margin-top: 4px; }
@@ -1107,10 +1105,10 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 .co-lines dt {
   color: var(--mute);
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+
+
   align-self: center;
 }
 .co-lines dd { font-weight: 500; }
@@ -1124,7 +1122,7 @@ details[open] .faq-x { transform: rotate(45deg); }
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--hairline);
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--mute);
   list-style: none;
 }
@@ -1146,7 +1144,7 @@ details[open] .faq-x { transform: rotate(45deg); }
   padding-block: 18px;
 }
 
-.co-legal { font-size: 11.5px; color: var(--mute); margin-top: 12px; text-align: center; }
+.co-legal { font-size: 13px; color: var(--mute); margin-top: 12px; text-align: center; }
 
 /* ── Responsive pages intérieures ───────────────────────────── */
 
@@ -1196,10 +1194,10 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 
 .xp-step em {
-  font-family: var(--tech);
+
   font-style: normal;
-  font-size: 8.5px;
-  letter-spacing: 0.22em;
+  font-size: 12.5px;
+
 }
 
 .xp-step.is-active { color: var(--ink); border-color: var(--ink); }
@@ -1214,7 +1212,7 @@ details[open] .faq-x { transform: rotate(45deg); }
 .xp-panel.is-active { display: block; }
 
 .xp-lead {
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.6;
   max-width: 52ch;
   margin-bottom: clamp(22px, 3vw, 34px);
@@ -1262,9 +1260,9 @@ details[open] .faq-x { transform: rotate(45deg); }
   transition: border-color 0.25s;
 }
 
-.xp-day em { font-style: normal; font-size: 9.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: var(--mute); }
+.xp-day em { font-style: normal; font-size: 12.5px; font-weight: 500; color: var(--mute); }
 .xp-day strong { font-size: 18px; font-weight: 400; font-variant-numeric: tabular-nums; }
-.xp-day span { font-size: 10px; color: var(--mute); }
+.xp-day span { font-size: 12.5px; color: var(--mute); }
 
 .xp-day:hover:not(:disabled) { border-color: var(--ink); }
 .xp-day.is-active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
@@ -1276,9 +1274,9 @@ details[open] .faq-x { transform: rotate(45deg); }
 .chip.is-taken { position: relative; opacity: 0.42; }
 .chip.is-taken i {
   font-style: normal;
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 12.5px;
+
+
   display: block;
   line-height: 1;
   margin-top: 1px;
@@ -1309,7 +1307,7 @@ details[open] .faq-x { transform: rotate(45deg); }
 
 .wa-who { display: grid; line-height: 1.25; }
 .wa-who strong { font-size: 13px; font-weight: 600; }
-.wa-who em { font-style: normal; font-size: 11px; color: var(--mute); }
+.wa-who em { font-style: normal; font-size: 13px; color: var(--mute); }
 
 .wa-thread { padding: 18px 16px 22px; background: var(--paper); }
 
@@ -1352,16 +1350,16 @@ details[open] .faq-x { transform: rotate(45deg); }
 .ticket-brand { height: 14px; width: auto; margin-bottom: 16px; }
 
 .ticket-ref {
-  font-family: var(--tech);
+
   font-size: 15px;
-  letter-spacing: 0.18em;
+
   margin: 10px 0 16px;
   min-height: 1.4em;
 }
 
 .ticket-status {
   margin-top: 16px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--mute);
 }
