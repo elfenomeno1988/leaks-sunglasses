@@ -14,6 +14,7 @@
   --white: #ffffff;
 
   --sans: "Instrument Sans", system-ui, sans-serif;
+  --serif: "Instrument Serif", Georgia, serif;
 
   --ah: 52px;                                   /* en-tête */
   --tb: calc(56px + env(safe-area-inset-bottom)); /* barre d'onglets */
@@ -105,8 +106,9 @@ button { font: inherit; color: inherit; background: none; border: none; }
 .sc-head { padding: 22px 20px 16px; }
 
 .sc-head h1 {
-  font-size: 21px;
-  font-weight: 500;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 400;
 
 
 }
@@ -144,7 +146,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .drop-logo { width: min(300px, 78%); margin: 22px 0 14px; }
 
-.drop-line { font-size: 15.5px; color: var(--mute); }
+.drop-line { font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--mute); }
 
 .count {
   display: flex;
@@ -253,7 +255,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .m-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 
-.m-row h1 { font-size: 17px; font-weight: 500; }
+.m-row h1 { font-family: var(--serif); font-size: 23px; font-weight: 400; }
 
 .m-price { font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
@@ -344,7 +346,7 @@ body[data-view="model"] .m-actions { transform: none; }
   .rdv-panel.is-active { animation: sc-in 0.3s var(--ease); }
 }
 
-.lead { font-size: 16px; margin-bottom: 18px; max-width: 34ch; }
+.lead { font-family: var(--serif); font-size: 19px; margin-bottom: 18px; max-width: 34ch; }
 
 .days {
   display: flex;
@@ -461,7 +463,7 @@ body[data-view="model"] .m-actions { transform: none; }
 
 .ticket img { height: 12px; width: auto; margin-bottom: 12px; }
 .ticket-ref { font-size: 14px; margin: 8px 0 6px; }
-.ticket-when { font-size: 13.5px; font-weight: 500; }
+.ticket-when { font-family: var(--serif); font-size: 18px; font-weight: 400; }
 .ticket-place { margin-top: 10px; font-size: 13.5px; color: var(--mute); }
 
 /* ── Écran · Studio ─────────────────────────────────────────── */
