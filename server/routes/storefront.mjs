@@ -60,6 +60,32 @@ export async function storefrontRoutes(app, deps) {
     });
   });
 
+  /* ── Webhook WhatsApp Cloud (vérification + accusés + réponses) ── */
+
+  app.get("/api/whatsapp/webhook", async (request, reply) => {
+    const { "hub.mode": mode, "hub.verify_token": token, "hub.challenge": challenge } = request.query;
+    if (mode === "subscribe" && token && token === config.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
+      return reply.type("text/plain").send(challenge);
+    }
+    return reply.code(403).send({ error: "Vérification refusée." });
+  });
+
+  app.post("/api/whatsapp/webhook", async (request, reply) => {
+    const entries = request.body?.entry || [];
+    for (const entry of entries) {
+      for (const change of entry.changes || []) {
+        const value = change.value || {};
+        (value.messages || []).forEach((m) => {
+          request.log.info({ from: m.from, type: m.type, text: m.text?.body }, "WhatsApp — message entrant");
+        });
+        (value.statuses || []).forEach((s) => {
+          request.log.info({ id: s.id, status: s.status, to: s.recipient_id }, "WhatsApp — statut");
+        });
+      }
+    }
+    return reply.code(200).send({ received: true });
+  });
+
   app.get("/api/orders/:reference", async (request, reply) => {
     const parsed = trackingSchema.safeParse({ ...request.params, ...request.query });
     if (!parsed.success) return reply.code(400).send({ error: "Lien de suivi invalide." });

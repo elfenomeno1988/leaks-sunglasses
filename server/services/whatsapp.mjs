@@ -65,19 +65,14 @@ export function handoffMessage(b) {
 export function createWhatsAppNotifier(config, logger = console) {
   const enabled = Boolean(config.WHATSAPP_CLOUD_TOKEN && config.WHATSAPP_PHONE_NUMBER_ID);
 
-  async function sendText(to, body) {
+  async function post(payload) {
     const res = await fetch(`${GRAPH}/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${config.WHATSAPP_CLOUD_TOKEN}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to,
-        type: "text",
-        text: { preview_url: false, body }
-      })
+      body: JSON.stringify({ messaging_product: "whatsapp", ...payload })
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
@@ -86,8 +81,42 @@ export function createWhatsAppNotifier(config, logger = console) {
     return res.json();
   }
 
+  const sendText = (to, body) => post({ to, type: "text", text: { preview_url: false, body } });
+
+  /* Template de confirmation — seul format accepté par Meta pour un
+     message à l'initiative de la marque hors fenêtre de 24 h. */
+  const sendBookingTemplate = (to, b) => post({
+    to,
+    type: "template",
+    template: {
+      name: config.WHATSAPP_TEMPLATE_BOOKING,
+      language: { code: config.WHATSAPP_TEMPLATE_LANG },
+      components: [{
+        type: "body",
+        parameters: [
+          { type: "text", text: frDate(b.date) },
+          { type: "text", text: b.time },
+          { type: "text", text: b.reference }
+        ]
+      }]
+    }
+  });
+
+  /* Client : template si configuré, sinon texte libre
+     (valable en mode test et dans la fenêtre de 24 h). */
+  async function sendCustomer(to, booking) {
+    if (config.WHATSAPP_TEMPLATE_BOOKING) {
+      try { return await sendBookingTemplate(to, booking); }
+      catch (error) {
+        logger.warn?.({ error: String(error) }, "Template refusé — tentative en texte libre");
+      }
+    }
+    return sendText(to, customerMessage(booking));
+  }
+
   return {
     enabled,
+    sendText,
 
     /* Fire-and-forget : une réservation n'échoue jamais parce que
        la notification n'est pas partie. */
@@ -95,7 +124,7 @@ export function createWhatsAppNotifier(config, logger = console) {
       if (!enabled) return { delivery: "handoff" };
       const to = String(booking.phone || "").replace(/\D/g, "");
       try {
-        await sendText(to, customerMessage(booking));
+        await sendCustomer(to, booking);
         sendText(config.WHATSAPP_CONCIERGE_NUMBER, conciergeAlert(booking))
           .catch((error) => logger.warn?.({ error: String(error) }, "Alerte concierge non délivrée"));
         return { delivery: "sent" };

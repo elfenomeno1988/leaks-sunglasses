@@ -8,6 +8,7 @@
     "start": "node server/app.mjs",
     "db:migrate": "node server/scripts/migrate.mjs",
     "admin:create": "node server/scripts/create-admin.mjs",
+    "wa:test": "node server/scripts/whatsapp-test.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "engines": {
