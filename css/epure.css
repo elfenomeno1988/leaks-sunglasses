@@ -12,9 +12,23 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
+  /* ── Système « Chrome & Encre » ─────────────────────────────
+     Trois familles, trois rôles stricts :
+     · Archivo (variable, axe wdth)  → la STRUCTURE. L'assise large
+       du wordmark : display 122–125 %, labels 112 %, texte 100 %.
+     · Instrument Serif              → la VOIX. L'éditorial français,
+       le concierge, le manifeste.
+     · Michroma                      → la GRAVURE. Références, tags,
+       numéros de série. Jamais une phrase.                        */
   --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Inter", system-ui, sans-serif;
+  --sans: "Archivo", system-ui, sans-serif;
   --tech: "Michroma", monospace;
+
+  /* Axe de largeur (wdth) par registre */
+  --x-text: 100%;
+  --x-label: 112%;
+  --x-disp: 122%;
+  --x-max: 125%;
 
   --gutter: clamp(20px, 3.4vw, 48px);
   --section: clamp(96px, 14vh, 180px);
@@ -28,13 +42,18 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--sans);
-  font-weight: 400;
+  font-stretch: var(--x-text);
+  font-weight: 410;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.66;
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+p { text-wrap: pretty; }
+h1, h2, h3, legend { text-wrap: balance; }
 
 img { display: block; max-width: 100%; }
 [hidden] { display: none !important; }
@@ -90,9 +109,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .nav-links {
   display: flex;
   gap: clamp(18px, 3vw, 40px);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 540;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -109,9 +129,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .nav-links a:hover::after { right: 0; }
 
 .nav-cta {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 620;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   border-bottom: 1px solid var(--ink);
   padding-bottom: 3px;
@@ -137,14 +158,22 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .hero-line {
   font-family: var(--serif);
   font-style: italic;
-  font-size: clamp(26px, 3.2vw, 44px);
-  line-height: 1.18;
+  font-size: clamp(28px, 3.6vw, 50px);
+  line-height: 1.14;
   font-weight: 400;
+  letter-spacing: -0.005em;
   max-width: 20em;
   margin-inline: auto;
 }
 
-.hero-line em { font-style: normal; font-family: var(--sans); font-weight: 300; font-size: 0.82em; }
+.hero-line em {
+  font-style: normal;
+  font-family: var(--sans);
+  font-stretch: var(--x-label);
+  font-weight: 300;
+  font-size: 0.76em;
+  letter-spacing: 0.01em;
+}
 
 .hero-meta {
   display: flex;
@@ -165,9 +194,11 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 .count b {
   display: block;
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-stretch: 118%;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .count i {
@@ -189,9 +220,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 580;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 15px 26px;
   border: 1px solid var(--ink);
@@ -275,10 +307,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .section-head h2 {
-  font-size: clamp(24px, 2.6vw, 38px);
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  line-height: 1.1;
+  font-size: clamp(24px, 2.8vw, 42px);
+  font-stretch: var(--x-disp);
+  font-weight: 430;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
 }
 
 .section-head .note { font-size: 12px; color: var(--mute); text-align: right; }
@@ -328,9 +362,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .card-row h3 {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 12.5px;
+  font-stretch: 116%;
+  font-weight: 560;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
@@ -348,7 +383,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   color: var(--mute);
 }
 
-.card-sub .price { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.card-sub .price { color: var(--ink); font-weight: 560; font-variant-numeric: tabular-nums; }
 
 /* ── Campagne ───────────────────────────────────────────────── */
 
@@ -396,10 +431,11 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 /* ── Le Drop ────────────────────────────────────────────────── */
 
 .drop-date {
-  font-size: clamp(44px, 7.2vw, 110px);
-  font-weight: 300;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  font-size: clamp(46px, 7.6vw, 122px);
+  font-stretch: var(--x-max);
+  font-weight: 230;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
   font-variant-numeric: tabular-nums;
 }
 
@@ -413,7 +449,15 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .rule { border-top: 1px solid var(--hairline-strong); padding-top: 16px; }
-.rule b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.rule b {
+  display: block;
+  font-size: 11.5px;
+  font-stretch: var(--x-label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
 .rule p { font-size: 13px; color: var(--mute); max-width: 30ch; }
 .rule .tag { display: block; margin-bottom: 12px; }
 
@@ -447,8 +491,16 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   font-size: 13px;
 }
 
-.summary-list dt { color: var(--mute); }
-.summary-list dd { font-weight: 500; text-align: right; }
+.summary-list dt {
+  color: var(--mute);
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 520;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  align-self: center;
+}
+.summary-list dd { font-weight: 520; text-align: right; font-variant-numeric: tabular-nums; }
 
 .summary-total {
   display: flex;
@@ -476,11 +528,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 .step legend em {
+  font-family: var(--tech);
   font-style: normal;
-  font-size: 10px;
+  font-size: 8.5px;
   color: var(--mute);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.24em;
 }
 
 .step legend small { font-weight: 400; font-size: 12px; color: var(--mute); }
@@ -595,8 +648,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   align-items: baseline;
   gap: 20px;
   padding-block: 20px;
-  font-size: 15px;
-  font-weight: 500;
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 400;
+  line-height: 1.3;
   transition: color 0.3s;
 }
 .faq-list summary::-webkit-details-marker { display: none; }
@@ -710,11 +765,13 @@ details[open] .faq-x { transform: rotate(45deg); }
   max-width: 880px;
 }
 
+/* Les titres de page sont des phrases — la voix, pas la structure. */
 .page-head h1 {
-  font-size: clamp(34px, 4.4vw, 64px);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-family: var(--serif);
+  font-size: clamp(38px, 5.2vw, 76px);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 1.04;
   margin-top: 16px;
 }
 
@@ -788,13 +845,16 @@ details[open] .faq-x { transform: rotate(45deg); }
 .look-meta .tag { display: block; }
 
 .look-meta h2 {
-  font-size: clamp(22px, 2.4vw, 34px);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: clamp(22px, 2.6vw, 38px);
+  font-stretch: var(--x-disp);
+  font-weight: 430;
+  letter-spacing: 0.02em;
+  line-height: 1.08;
+  text-transform: uppercase;
   margin-top: 14px;
 }
 
-.look-meta h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; }
+.look-meta h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; }
 
 .look-meta .desc { font-size: 14px; color: var(--mute); margin-top: 12px; max-width: 40ch; }
 
@@ -871,7 +931,14 @@ details[open] .faq-x { transform: rotate(45deg); }
 
 .g-panel { display: grid; gap: 26px; }
 
-.g-panel h1 { font-size: clamp(28px, 3vw, 44px); font-weight: 500; letter-spacing: -0.015em; line-height: 1.05; }
+.g-panel h1 {
+  font-size: clamp(28px, 3.2vw, 48px);
+  font-stretch: var(--x-disp);
+  font-weight: 420;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
 
 .g-panel .desc { font-size: 14px; color: var(--mute); max-width: 44ch; margin-top: 10px; }
 
@@ -884,8 +951,16 @@ details[open] .faq-x { transform: rotate(45deg); }
   border-bottom: 1px solid var(--hairline);
   font-size: 13px;
 }
-.g-lines dt { color: var(--mute); }
-.g-lines dd { font-weight: 500; }
+.g-lines dt {
+  color: var(--mute);
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 520;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  align-self: center;
+}
+.g-lines dd { font-weight: 520; font-variant-numeric: tabular-nums; }
 
 .g-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
 
@@ -931,10 +1006,11 @@ details[open] .faq-x { transform: rotate(45deg); }
 }
 
 .co-step legend em {
+  font-family: var(--tech);
   font-style: normal;
-  font-size: 10px;
+  font-size: 8.5px;
   color: var(--mute);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.24em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1044,7 +1120,14 @@ details[open] .faq-x { transform: rotate(45deg); }
 
 .co-card .co-figure img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
 
-.co-card h2 { font-size: 17px; font-weight: 600; margin-top: 10px; }
+.co-card h2 {
+  font-size: 15px;
+  font-stretch: 116%;
+  font-weight: 560;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
 .co-card .desc { font-size: 12.5px; color: var(--mute); margin-top: 4px; }
 
 .co-lines { display: grid; margin-top: 18px; border-top: 1px solid var(--hairline-strong); }
@@ -1054,7 +1137,15 @@ details[open] .faq-x { transform: rotate(45deg); }
   border-bottom: 1px solid var(--hairline);
   font-size: 13px;
 }
-.co-lines dt { color: var(--mute); }
+.co-lines dt {
+  color: var(--mute);
+  font-size: 10.5px;
+  font-stretch: var(--x-label);
+  font-weight: 520;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  align-self: center;
+}
 .co-lines dd { font-weight: 500; }
 
 .co-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; font-size: 13px; }
@@ -1156,15 +1247,17 @@ details[open] .faq-x { transform: rotate(45deg); }
 .xp-panel.is-active { display: block; }
 
 .xp-lead {
-  font-size: 17px;
-  line-height: 1.5;
-  max-width: 46ch;
+  font-family: var(--serif);
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.4;
+  max-width: 44ch;
   margin-bottom: clamp(22px, 3vw, 34px);
 }
 
 .xp-lead small {
   display: block;
-  margin-top: 6px;
+  margin-top: 8px;
+  font-family: var(--sans);
   font-size: 12.5px;
   color: var(--mute);
 }
@@ -1205,8 +1298,14 @@ details[open] .faq-x { transform: rotate(45deg); }
 .xp-model:hover { border-color: var(--hairline-strong); transform: translateY(-2px); }
 .xp-model.is-active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 
-.xp-model-name { font-size: 12.5px; font-weight: 600; }
-.xp-model-sku { font-size: 10.5px; color: var(--mute); letter-spacing: 0.04em; }
+.xp-model-name {
+  font-size: 11.5px;
+  font-stretch: 116%;
+  font-weight: 580;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.xp-model-sku { font-size: 10px; color: var(--mute); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
 
 /* — 02 · Le moment — */
 
@@ -1231,8 +1330,8 @@ details[open] .faq-x { transform: rotate(45deg); }
   transition: border-color 0.25s;
 }
 
-.xp-day em { font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--mute); }
-.xp-day strong { font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.xp-day em { font-style: normal; font-size: 9.5px; font-stretch: var(--x-label); font-weight: 540; text-transform: uppercase; letter-spacing: 0.12em; color: var(--mute); }
+.xp-day strong { font-size: 18px; font-stretch: 112%; font-weight: 380; font-variant-numeric: tabular-nums; }
 .xp-day span { font-size: 10px; color: var(--mute); }
 
 .xp-day:hover:not(:disabled) { border-color: var(--ink); }
