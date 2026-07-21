@@ -114,9 +114,18 @@ export function createWhatsAppNotifier(config, logger = console) {
     return sendText(to, customerMessage(booking));
   }
 
+  /* Template pré-approuvé « hello_world » — sert à prouver la connexion
+     en mode test, où le texte libre est refusé au premier contact. */
+  const sendHelloWorld = (to) => post({
+    to,
+    type: "template",
+    template: { name: "hello_world", language: { code: "en_US" } }
+  });
+
   return {
     enabled,
     sendText,
+    sendHelloWorld,
 
     /* Fire-and-forget : une réservation n'échoue jamais parce que
        la notification n'est pas partie. */

@@ -1,5 +1,10 @@
 import path from "node:path";
+import dns from "node:dns";
 import { fileURLToPath } from "node:url";
+
+/* Sur certains réseaux (macOS notamment), Node préfère l'IPv6 et échoue à
+   joindre graph.facebook.com — l'IPv4 d'abord règle l'envoi WhatsApp. */
+dns.setDefaultResultOrder("ipv4first");
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import formbody from "@fastify/formbody";

@@ -2,6 +2,9 @@
    Usage :  npm run wa:test -- 2250700000000
    (numéro au format international, sans « + » ni espaces)              */
 
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { loadConfig } from "../config.mjs";
 import { createWhatsAppNotifier, customerMessage } from "../services/whatsapp.mjs";
 
@@ -33,11 +36,17 @@ const demo = {
   note: ""
 };
 
+/* En mode test, le premier message doit être un template. On envoie donc
+   « hello_world » (connexion), sauf si --text est passé pour forcer le texte. */
+const useText = process.argv.includes("--text");
+
 try {
-  const result = await wa.sendText(to, customerMessage(demo));
-  console.log("✦ Message parti. Réponse Meta :");
+  const result = useText
+    ? await wa.sendText(to, customerMessage(demo))
+    : await wa.sendHelloWorld(to);
+  console.log(`✦ Message parti (${useText ? "texte LEAKS" : "template hello_world"}). Réponse Meta :`);
   console.log(JSON.stringify(result, null, 2));
-  console.log("\nRegardez WhatsApp sur le numéro destinataire — la confirmation LEAKS doit y être.");
+  console.log("\nRegardez WhatsApp sur le numéro destinataire — le message doit y être.");
 } catch (error) {
   console.error("Échec de l'envoi :\n" + String(error.message || error));
   console.error(
