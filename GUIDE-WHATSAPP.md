@@ -95,3 +95,35 @@ Pour recevoir les réponses des clients et les accusés de livraison :
 et des jetons passe par votre identité Meta (connexion Facebook, vérification
 d'entreprise). Tout le reste — l'envoi, les messages, le webhook, la reprise
 wa.me en cas de panne — est déjà codé et actif.
+
+---
+
+## Étape 6 — Passer des 5 testeurs aux centaines de clients (gratuit)
+
+La limite de 5 destinataires n'est pas payante : c'est le **mode test**.
+On en sort en trois gestes, tous gratuits :
+
+### 6.1 Enregistrer votre vrai numéro
+WhatsApp → **API Setup** → « Étape 5 : Ajoutez un numéro de téléphone ».
+⚠ Le numéro ne doit **pas** être connecté à l'app WhatsApp/WhatsApp
+Business classique (déconnectez-le d'abord, ou prenez une SIM dédiée).
+Une fois vérifié par SMS : la limite des 5 disparaît, remplacée par le
+palier de départ (250 conversations/24 h).
+
+### 6.2 Vérification d'entreprise (débloque les grands paliers)
+**business.facebook.com** → Paramètres → Centre de sécurité →
+**Démarrer la vérification**. Fournissez un document officiel
+(registre de commerce, facture au nom de l'entreprise…). Gratuit,
+quelques jours d'attente.
+
+### 6.3 Les paliers montent tout seuls
+250 → 1 000 → 10 000 → 100 000 → illimité conversations/jour.
+La montée est automatique quand vous envoyez avec une bonne qualité
+(pas de spam, clients qui répondent). Aucun paiement.
+
+### Combien ça coûte à l'usage ?
+- Réponses aux clients dans les 24 h : **gratuites, illimitées**
+- Confirmations/rappels (« utility ») dans la fenêtre de 24 h : **gratuits**
+- Hors fenêtre : template requis, facturé quelques centimes de F CFA —
+  et Meta offre 1 000 conversations de service par mois.
+Pour LEAKS (dizaines de RDV/commandes par jour) : **coût ≈ 0**.

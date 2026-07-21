@@ -18,16 +18,16 @@ const config = {
 
 test("catalogue resolves a server-priced variant", async () => {
   const catalog = await loadCatalog();
-  const line = resolveLineItem(catalog, "genesio", "original", 2);
+  const line = resolveLineItem(catalog, "genesio", "deep-brown", 2);
   assert.equal(line.product.price, 20000);
-  assert.equal(line.variant.name, "Original");
+  assert.equal(line.variant.name, "Deep Brown");
   assert.equal(line.subtotal, 40000);
   assert.throws(() => resolveLineItem(catalog, "genesio", "inconnu", 1));
-  assert.throws(() => resolveLineItem(catalog, "genesio", "original", 4));
+  assert.throws(() => resolveLineItem(catalog, "genesio", "deep-brown", 4));
 });
 
 test("checkout validates Côte d'Ivoire contact and delivery address", () => {
-  const base = { productId: "genesio", variantId: "original", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "pickup", paymentMethod: "wave" };
+  const base = { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "pickup", paymentMethod: "wave" };
   assert.equal(checkoutSchema.parse(base).customerPhone, "0700000000");
   assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+225 07 00 00 00 00" }).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.safeParse({ ...base, deliveryMethod: "abidjan_delivery", deliveryAddress: "court" }).success, false);
@@ -69,7 +69,7 @@ test("order creation persists server totals before creating the payment invoice"
     }
   };
   const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 22000); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
-  const result = await createOrder({ db, catalog, config, paydunya, input: { productId: "genesio", variantId: "original", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" } });
+  const result = await createOrder({ db, catalog, config, paydunya, input: { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" } });
   assert.equal(result.redirectUrl, "https://pay.test/invoice");
   assert.equal(calls[0].params[13], 22000);
   assert.match(calls[0].sql, /insert into orders/);
@@ -96,10 +96,17 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.match(galleryResponse.body, /Un modèle, plusieurs coloris/);
   const checkoutResponse = await app.inject({ method: "GET", url: "/checkout.html" });
   assert.equal(checkoutResponse.statusCode, 200);
-  assert.match(checkoutResponse.body, /Finaliser la commande/);
+  assert.match(checkoutResponse.body, /La paire,/);
   const homeResponse = await app.inject({ method: "GET", url: "/" });
   assert.equal(homeResponse.statusCode, 200);
   assert.match(homeResponse.body, /LEAKS Sunglasses/);
+  const appResponse = await app.inject({ method: "GET", url: "/m.html" });
+  assert.equal(appResponse.statusCode, 200);
+  assert.match(appResponse.body, /Réserver un essayage/);
+  const badDate = await app.inject({ method: "GET", url: "/api/bookings/availability?date=pas-une-date" });
+  assert.equal(badDate.statusCode, 400);
+  const webhookDenied = await app.inject({ method: "GET", url: "/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=faux&hub.challenge=x" });
+  assert.equal(webhookDenied.statusCode, 403);
   const privateFile = await app.inject({ method: "GET", url: "/server/config.mjs" });
   assert.equal(privateFile.statusCode, 404);
   const callback = await app.inject({ method: "POST", url: "/api/payments/paydunya/ipn", headers: { "content-type": "application/x-www-form-urlencoded" }, payload: "data%5Bhash%5D=valid-hash&data%5Binvoice%5D%5Btoken%5D=test_invoice" });

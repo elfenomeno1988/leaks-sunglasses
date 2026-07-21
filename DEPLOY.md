@@ -42,16 +42,36 @@ paiements PayDunya vérifiés côté serveur.
    `node server/scripts/create-admin.mjs admin@leaks.ci <mot-de-passe>`
 6. Vérifiez `https://votre-domaine/health` → `{"ok":true}`.
 
-## Option B — VPS (Docker Compose)
+---
 
-```bash
-git clone <repo> && cd Joan
-cp .env.example .env   # remplir les valeurs de prod (voir ci-dessus)
-docker compose up -d --build
-```
+## Option B — VPS Hostinger (pas-à-pas, ~20 min)
 
-Mettez un reverse-proxy TLS devant (Caddy en deux lignes :
-`votre-domaine.ci { reverse_proxy localhost:3000 }`).
+1. **hpanel.hostinger.com** → **VPS** → choisissez un **KVM 1** (suffisant :
+   1 vCPU / 4 Go). Lors de la configuration, prenez le template
+   **« Ubuntu 24.04 with Docker »** (sinon Ubuntu 24.04 simple — le script
+   installera Docker). Notez le **mot de passe root** et l'**adresse IP**.
+2. **DNS** : hPanel → Domaines → votre domaine → Zone DNS →
+   ajoutez/modifiez l'enregistrement **A** : `@` → l'IP du VPS
+   (et `www` → même IP). Propagation : quelques minutes à quelques heures.
+3. **Connexion** : depuis le Terminal de votre Mac :
+   `ssh root@IP_DU_VPS`
+4. **Déploiement** :
+   ```bash
+   git clone https://github.com/elfenomeno1988/leaks-sunglasses.git
+   cd leaks-sunglasses
+   cp .env.example .env
+   nano .env        # collez les valeurs de production (voir liste Option A)
+   bash deploy/vps-setup.sh votre-domaine.ci
+   ```
+   Le script installe Docker s'il manque, lance l'app + Postgres,
+   et met Caddy devant pour le HTTPS automatique.
+5. **Compte admin** :
+   `docker compose exec app node server/scripts/create-admin.mjs admin@leaks.ci <mot-de-passe>`
+6. Vérifiez `https://votre-domaine.ci/health` → `{"ok":true}`.
+   Ensuite, webhook Meta + PayDunya live + numéro WhatsApp réel :
+   voir « Après le premier déploiement » ci-dessous.
+
+Mises à jour futures : `cd leaks-sunglasses && git pull && docker compose up -d --build`
 
 ---
 

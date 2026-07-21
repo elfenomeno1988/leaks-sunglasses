@@ -14,6 +14,8 @@ const frDate = (iso) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+const frAmount = (n) => `${new Intl.NumberFormat("fr-FR").format(n)} F`;
+
 /* ── Copywriting — la voix LEAKS : brève, précise, au service ── */
 
 export function customerMessage(b) {
@@ -120,7 +122,7 @@ export function orderAlert(o) {
     `✦ Commande payée — ${o.reference}`,
     "",
     `${o.product_name} — ${o.variant_name} × ${o.quantity}`,
-    `${o.total_amount} F · ${o.delivery_method === "pickup" ? "Retrait studio" : "Livraison Abidjan"}`,
+    `${frAmount(o.total_amount)} · ${o.delivery_method === "pickup" ? "Retrait studio" : "Livraison Abidjan"}`,
     `${o.customer_name} — ${o.customer_phone}`,
     o.delivery_address ? `Adresse : ${o.delivery_address}` : null,
     o.customer_note ? `Note : ${o.customer_note}` : null
