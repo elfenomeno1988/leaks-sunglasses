@@ -6,10 +6,18 @@
   <title>Galerie — LEAKS Sunglasses</title>
   <meta name="description" content="LEAKS — un modèle, ses coloris, toutes ses vues.">
   <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
+  <script>
+    // Un lien de galerie ouvert sur téléphone mène à la même fiche, dans l'app.
+    if (matchMedia("(pointer: coarse)").matches && matchMedia("(max-width: 820px)").matches
+        && !new URLSearchParams(location.search).has("desktop")) {
+      const model = new URLSearchParams(location.search).get("product") || "";
+      location.replace(model ? "/m.html#/model/" + model : "/m.html#/collection");
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/epure.css">
+  <link rel="stylesheet" href="/css/epure.css?v=4">
 </head>
 <body>
 
@@ -70,7 +78,7 @@
     </div>
   </footer>
 
-  <script src="/js/catalog-data.js"></script>
-  <script src="/js/gallery.js" type="module"></script>
+  <script src="/js/catalog-data.js?v=4"></script>
+  <script src="/js/gallery.js?v=4" type="module"></script>
 </body>
 </html>

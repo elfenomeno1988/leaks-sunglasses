@@ -48,11 +48,14 @@ export async function buildApp(overrides = {}) {
     wildcard: false,
     cacheControl: false, // sinon le plugin écrase nos Cache-Control
     setHeaders(res, filePath) {
-      /* Les images produits/campagne ne bougent jamais ; le code un peu.
+      /* Les images produits/campagne ne bougent jamais ; le code est
+         versionné par ?v=N dans les pages. En dev : jamais de cache,
+         chaque changement s'affiche immédiatement.
          (@fastify/static passe tantôt la réponse brute, tantôt un Reply.) */
       const raw = typeof res.setHeader === "function" ? res : res.raw;
-      if (/[\\/]assets[\\/]/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=604800, immutable");
-      else if (/\.(css|js)$/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=3600");
+      if (!config.isProduction) raw.setHeader("Cache-Control", "no-store");
+      else if (/[\\/]assets[\\/]/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      else if (/\.(css|js)$/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=86400");
       else raw.setHeader("Cache-Control", "no-cache");
     },
     allowedPath(pathName) {
