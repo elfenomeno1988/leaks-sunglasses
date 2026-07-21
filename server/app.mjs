@@ -71,7 +71,17 @@ export async function buildApp(overrides = {}) {
   }
   app.get("/health", async () => {
     await db.query("select 1");
-    return { ok: true };
+    /* Profondeur de la file WhatsApp — pour la supervision. */
+    let notifications = null;
+    try {
+      const r = await db.query(
+        `select count(*) filter (where status = 'queued')::int as queued,
+                count(*) filter (where status = 'failed')::int as failed
+         from notifications`
+      );
+      notifications = r.rows[0] || null;
+    } catch { /* table absente (première migration à venir) */ }
+    return { ok: true, notifications };
   });
 
   app.setErrorHandler((error, request, reply) => {
@@ -94,4 +104,21 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const config = loadConfig();
   const app = await buildApp({ config });
   await app.listen({ host: "0.0.0.0", port: config.PORT });
+
+  /* Arrêt propre : docker stop / systemd envoient SIGTERM — on finit les
+     requêtes en cours, on arrête la file, on ferme la base, puis on sort. */
+  let stopping = false;
+  const shutdown = async (signal) => {
+    if (stopping) return;
+    stopping = true;
+    app.log.info({ signal }, "Arrêt propre demandé");
+    try { await app.close(); } finally { process.exit(0); }
+  };
+  for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => shutdown(signal));
+
+  process.on("unhandledRejection", (reason) => app.log.error({ reason: String(reason) }, "Promesse rejetée non gérée"));
+  process.on("uncaughtException", (error) => {
+    app.log.fatal({ error: String(error?.stack || error) }, "Exception non rattrapée — arrêt");
+    shutdown("uncaughtException");
+  });
 }

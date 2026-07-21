@@ -31,7 +31,13 @@ export async function storefrontRoutes(app, deps) {
 
   app.get("/api/bookings/availability", async (request, reply) => {
     const date = String(request.query.date || "");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return reply.code(400).send({ error: "Date invalide." });
+    /* Une vraie date du calendrier — « 2026-99-99 » passait le regex
+       et finissait en erreur 500 côté Postgres. */
+    const parsed = new Date(`${date}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsed.getTime())
+        || parsed.toISOString().slice(0, 10) !== date) {
+      return reply.code(400).send({ error: "Date invalide." });
+    }
     return { date, booked: await bookedSlots({ db, date }) };
   });
 

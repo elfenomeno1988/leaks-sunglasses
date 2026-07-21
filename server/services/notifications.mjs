@@ -38,12 +38,20 @@ export function createNotificationCenter({ db, whatsapp, logger = console }) {
     draining = true;
     try {
       for (;;) {
+        /* Réclamation ATOMIQUE : l'UPDATE incrémente attempts et repousse
+           next_attempt_at dans la même instruction — deux instances du
+           serveur ne peuvent jamais réclamer le même message. */
         const { rows } = await db.query(
-          `select id, recipient, body, attempts from notifications
-           where status = 'queued' and next_attempt_at <= now()
-           order by created_at
-           limit ${BATCH}
-           for update skip locked`
+          `update notifications
+           set attempts = attempts + 1,
+               next_attempt_at = now() + interval '5 minutes'
+           where id in (
+             select id from notifications
+             where status = 'queued' and next_attempt_at <= now()
+             order by created_at
+             limit ${BATCH}
+             for update skip locked)
+           returning id, recipient, body, attempts`
         );
         if (!rows.length) break;
 
@@ -55,17 +63,16 @@ export function createNotificationCenter({ db, whatsapp, logger = console }) {
               [n.id, result?.messages?.[0]?.id || null]
             );
           } catch (error) {
-            const attempts = n.attempts + 1;
-            const failed = attempts >= MAX_ATTEMPTS;
+            const failed = n.attempts >= MAX_ATTEMPTS;
             /* Recul exponentiel : 1, 2, 4, 8… minutes, plafonné à 30. */
-            const delayMin = Math.min(2 ** (attempts - 1), 30);
+            const delayMin = Math.min(2 ** (n.attempts - 1), 30);
             await db.query(
-              `update notifications set attempts=$2, status=$3,
-               next_attempt_at = now() + ($4 || ' minutes')::interval,
-               last_error=$5 where id=$1`,
-              [n.id, attempts, failed ? "failed" : "queued", String(delayMin), String(error.message || error).slice(0, 500)]
+              `update notifications set status=$2,
+               next_attempt_at = now() + ($3 || ' minutes')::interval,
+               last_error=$4 where id=$1`,
+              [n.id, failed ? "failed" : "queued", String(delayMin), String(error.message || error).slice(0, 500)]
             );
-            logger.warn?.({ id: n.id, attempts, error: String(error.message || error) },
+            logger.warn?.({ id: n.id, attempts: n.attempts, error: String(error.message || error) },
               failed ? "Notification abandonnée" : "Notification rejouée plus tard");
           }
         }

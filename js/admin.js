@@ -11,6 +11,12 @@ const labels = {
   pending_payment: "Paiement attendu", confirmed: "Confirmée", preparing: "Préparation", ready: "Prête", shipped: "Expédiée", delivered: "Livrée"
 };
 
+const bookingLabels = { pending: "À confirmer", confirmed: "Confirmé", honored: "Honoré", cancelled: "Annulé" };
+const frDay = (iso) => {
+  const s = new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${String(iso).slice(0, 10)}T00:00:00Z`));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
 async function api(url, options = {}) {
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));
@@ -29,6 +35,7 @@ function showDashboard(admin) {
   loginView.hidden = true; dashboard.hidden = false;
   document.querySelector("#admin-email").textContent = admin.email;
   loadOrders();
+  loadBookings();
 }
 
 document.querySelector("#login-form").addEventListener("submit", async (event) => {
@@ -96,6 +103,43 @@ document.querySelector("#export-csv").addEventListener("click", () => {
   const csv = [header, ...rows].map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"','""')}"`).join(",")).join("\n");
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); link.download = `leaks-commandes-${new Date().toISOString().slice(0,10)}.csv`; link.click(); URL.revokeObjectURL(link.href);
 });
+
+/* ── Le carnet d'essayages ─────────────────────────────────── */
+
+const bookingsBody = document.querySelector("#bookings-body");
+
+async function loadBookings() {
+  try {
+    const { bookings } = await api("/api/admin/bookings");
+    const today = new Date().toISOString().slice(0, 10);
+    const upcoming = bookings.filter((b) => String(b.booking_date).slice(0, 10) >= today);
+    document.querySelector("#bookings-empty").hidden = upcoming.length > 0;
+    bookingsBody.innerHTML = "";
+    upcoming.forEach((b) => {
+      const row = document.createElement("tr");
+      const actions = [];
+      if (b.status === "pending") actions.push(["confirmed", "Confirmer"], ["cancelled", "Annuler"]);
+      if (b.status === "confirmed") actions.push(["honored", "Honoré"], ["cancelled", "Annuler"]);
+      row.innerHTML = `<td><strong>${escapeHtml(b.reference)}</strong></td>
+        <td>${frDay(b.booking_date)}<small>${escapeHtml(b.booking_time)}</small></td>
+        <td>${escapeHtml(b.customer_name)}<small>${escapeHtml(b.customer_phone)}</small></td>
+        <td>${escapeHtml(b.customer_note || "—")}</td>
+        <td><span class="badge badge-${b.status === "confirmed" || b.status === "honored" ? "paid" : b.status === "cancelled" ? "cancelled" : "pending"}">${bookingLabels[b.status] || b.status}</span></td>
+        <td>${actions.map(([s, t]) => `<button type="button" class="table-action" data-status="${s}">${t}</button>`).join(" ")}</td>`;
+      row.querySelectorAll("[data-status]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          await api(`/api/admin/bookings/${encodeURIComponent(b.reference)}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ status: button.dataset.status })
+          });
+          loadBookings();
+        });
+      });
+      bookingsBody.appendChild(row);
+    });
+  } catch (error) { if (error.status === 401) location.reload(); }
+}
 
 function escapeHtml(value) { const node = document.createElement("span"); node.textContent = String(value); return node.innerHTML; }
 boot();

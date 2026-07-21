@@ -42,6 +42,20 @@ export async function createBooking({ db, catalog, input }) {
   const values = bookingSchema.parse(input ?? {});
   assertBookableDate(values.date);
 
+  /* Anti-abus : deux rendez-vous à venir maximum par numéro —
+     personne ne peut bloquer le calendrier du studio. */
+  const phoneDigits = values.phone.replace(/\D/g, "");
+  const active = await db.query(
+    `select count(*)::int as n from bookings
+     where regexp_replace(customer_phone, '\\D', '', 'g') = $1
+       and status in ('pending', 'confirmed')
+       and booking_date >= current_date`,
+    [phoneDigits]
+  );
+  if (active.rows[0].n >= 2) {
+    throw new BookingError("Vous avez déjà deux rendez-vous à venir. Écrivez au concierge pour modifier.", 429);
+  }
+
   const knownModels = new Set(catalog.list.map((product) => product.id));
   const models = [...new Set(values.models)].filter((id) => knownModels.has(id));
 
