@@ -46,11 +46,14 @@ export async function buildApp(overrides = {}) {
   await app.register(fastifyStatic, {
     root,
     wildcard: false,
+    cacheControl: false, // sinon le plugin écrase nos Cache-Control
     setHeaders(res, filePath) {
-      /* Les images produits/campagne ne bougent jamais ; le code un peu. */
-      if (/[\\/]assets[\\/]/.test(filePath)) res.setHeader("Cache-Control", "public, max-age=604800, immutable");
-      else if (/\.(css|js)$/.test(filePath)) res.setHeader("Cache-Control", "public, max-age=3600");
-      else res.setHeader("Cache-Control", "no-cache");
+      /* Les images produits/campagne ne bougent jamais ; le code un peu.
+         (@fastify/static passe tantôt la réponse brute, tantôt un Reply.) */
+      const raw = typeof res.setHeader === "function" ? res : res.raw;
+      if (/[\\/]assets[\\/]/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      else if (/\.(css|js)$/.test(filePath)) raw.setHeader("Cache-Control", "public, max-age=3600");
+      else raw.setHeader("Cache-Control", "no-cache");
     },
     allowedPath(pathName) {
       return pathName === "/" || pathName === "/index.html" || pathName === "/gallery.html" || pathName === "/checkout.html" || pathName === "/confirmation.html" ||
