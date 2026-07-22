@@ -21,7 +21,7 @@ if [ ! -f .env ]; then
 fi
 
 echo "── Application ─────────────────────────────────────"
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 
 echo "── HTTPS (Caddy) ───────────────────────────────────"
 mkdir -p /etc/caddy

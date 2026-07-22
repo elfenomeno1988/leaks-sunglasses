@@ -42,7 +42,7 @@ fi
 
 # 4. Lancement (app + PostgreSQL, migrations au démarrage)
 echo "→ Construction et démarrage (quelques minutes la première fois)…"
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 
 # 5. Vérification
 echo "→ Vérification…"
