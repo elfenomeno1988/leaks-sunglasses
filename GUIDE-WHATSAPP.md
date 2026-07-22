@@ -35,6 +35,8 @@ Dans `.env` :
 ```
 WHATSAPP_CLOUD_TOKEN=EAAG...votre-jeton
 WHATSAPP_PHONE_NUMBER_ID=1239914522534675
+WHATSAPP_BUSINESS_ACCOUNT_ID=821478214384181
+META_GRAPH_VERSION=v25.0
 WHATSAPP_CONCIERGE_NUMBER=2250173891404
 WHATSAPP_TEMPLATE_BOOKING=leaks_confirmation_rdv
 WHATSAPP_TEMPLATE_ORDER=leaks_confirmation_commande
@@ -47,10 +49,12 @@ WHATSAPP_TEMPLATE_LANG=fr
 Puis testez avec votre numéro :
 
 ```
+npm run wa:ready
 npm run wa:test -- 2250700000000
 ```
 
-Si le message « LEAKS ✦ Votre essayage privé est retenu » arrive sur votre
+`wa:ready` vérifie le jeton, le numéro professionnel et l'abonnement webhook
+sans afficher de secret. Si le message « LEAKS ✦ Votre essayage privé est retenu » arrive sur votre
 WhatsApp : c'est branché. Toute réservation sur le site enverra désormais
 les messages toute seule (l'écran du client dira « votre confirmation est
 déjà dans votre WhatsApp »).
@@ -65,9 +69,18 @@ Pour recevoir les réponses des clients et les accusés de livraison :
    `WHATSAPP_APP_SECRET`. Elle permet de vérifier cryptographiquement chaque
    événement envoyé par Meta.
 3. Meta → WhatsApp → **Configuration** → Webhook :
-   - Callback URL : `https://votre-domaine/api/whatsapp/webhook`
+   - Callback URL : `https://leaksthebrand.com/api/whatsapp/webhook`
    - Verify token : le même mot de passe
    - Abonnez le champ **messages**.
+
+Contrôle final sur le VPS :
+
+```
+docker compose exec -T app npm run wa:ready -- --strict
+```
+
+Le mode strict exige : numéro lisible via Graph, cinq noms de modèles,
+clé secrète, jeton de vérification et abonnement de l'app au compte WhatsApp.
 
 ## Étape 5 — Passer en production (quand le drop approche)
 

@@ -8,7 +8,7 @@ import { syncPayment, verifyMetaSignature } from "../server/routes/storefront.mj
 import { buildApp } from "../server/app.mjs";
 import { createNotificationCenter } from "../server/services/notifications.mjs";
 import { loadConfig } from "../server/config.mjs";
-import { bookingUpdateTemplateParameters, orderStatusTemplateParameters } from "../server/services/whatsapp.mjs";
+import { bookingUpdateTemplateParameters, createWhatsAppNotifier, orderStatusTemplateParameters } from "../server/services/whatsapp.mjs";
 
 const config = {
   NODE_ENV: "test", PORT: 3000, PUBLIC_SITE_URL: "http://localhost:3000",
@@ -17,6 +17,12 @@ const config = {
   PAYDUNYA_PRIVATE_KEY: "private", PAYDUNYA_TOKEN: "token",
   paydunyaConfigured: true,
   WHATSAPP_NUMBER: "2250173891404", DELIVERY_ABIDJAN_FEE: 2000,
+  META_GRAPH_VERSION: "v25.0",
+  WHATSAPP_TEMPLATE_BOOKING: "leaks_confirmation_rdv",
+  WHATSAPP_TEMPLATE_ORDER: "leaks_confirmation_commande",
+  WHATSAPP_TEMPLATE_BOOKING_UPDATE: "leaks_suivi_rdv",
+  WHATSAPP_TEMPLATE_ORDER_UPDATE: "leaks_suivi_commande",
+  WHATSAPP_TEMPLATE_CONCIERGE_ALERT: "leaks_alerte_concierge",
   WHATSAPP_APP_SECRET: "meta-app-secret",
   isProduction: false, publicSiteUrl: "http://localhost:3000"
 };
@@ -69,6 +75,7 @@ test("production never exposes PayDunya sandbox checkout", () => {
   };
   assert.equal(loadConfig({ ...baseEnv, NODE_ENV: "production", PAYDUNYA_MODE: "test" }).paydunyaConfigured, false);
   assert.equal(loadConfig({ ...baseEnv, NODE_ENV: "production", PAYDUNYA_MODE: "live" }).paydunyaConfigured, true);
+  assert.equal(loadConfig({ ...baseEnv }).META_GRAPH_VERSION, "v25.0");
 });
 
 test("PayDunya channels and callback hash are restricted correctly", () => {
@@ -123,6 +130,35 @@ test("all delayed WhatsApp updates have approved-template payloads", () => {
   const order = { product_name: "Genesio", variant_name: "Deep Brown", reference: "LK-LEAKS-1234" };
   const update = orderStatusTemplateParameters("shipped", order);
   assert.deepEqual(update.slice(0, 4), ["En route", "Genesio", "Deep Brown", "LK-LEAKS-1234"]);
+});
+
+test("WhatsApp Cloud uses the configured Graph version and template payload", async () => {
+  const originalFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (url, options) => {
+    request = { url: String(url), options };
+    return new Response(JSON.stringify({ messages: [{ id: "wamid.test" }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  try {
+    const whatsapp = createWhatsAppNotifier({
+      ...config,
+      WHATSAPP_CLOUD_TOKEN: "server-token",
+      WHATSAPP_PHONE_NUMBER_ID: "1239914522534675",
+      WHATSAPP_TEMPLATE_LANG: "fr"
+    });
+    await whatsapp.sendTemplate("2250173891404", "leaks_confirmation_rdv", ["Jeudi 23 juillet", "15:00", "LK-RDV-TEST"]);
+    assert.match(request.url, /graph\.facebook\.com\/v25\.0\/1239914522534675\/messages$/);
+    assert.equal(request.options.headers.Authorization, "Bearer server-token");
+    const payload = JSON.parse(request.options.body);
+    assert.equal(payload.template.name, "leaks_confirmation_rdv");
+    assert.equal(payload.template.language.code, "fr");
+    assert.equal(payload.template.components[0].parameters.length, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("Meta webhook signatures are verified before processing", () => {
@@ -198,6 +234,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.equal(signedWebhook.statusCode, 200);
   const health = await app.inject({ method: "GET", url: "/health" });
   assert.equal(health.json().capabilities.paydunya, true);
+  assert.equal(health.json().capabilities.whatsappTemplates, true);
   assert.equal(health.json().capabilities.whatsappWebhookSigned, true);
   const privateFile = await app.inject({ method: "GET", url: "/server/config.mjs" });
   assert.equal(privateFile.statusCode, 404);

@@ -8,7 +8,10 @@
     "start": "node server/app.mjs",
     "db:migrate": "node server/scripts/migrate.mjs",
     "admin:create": "node server/scripts/create-admin.mjs",
+    "wa:ready": "node server/scripts/whatsapp-readiness.mjs",
     "wa:test": "node server/scripts/whatsapp-test.mjs",
+    "deploy:production": "bash deploy/from-workspace.sh",
+    "release:production": "bash deploy/release.sh main",
     "test": "node --test tests/*.test.mjs"
   },
   "engines": {

@@ -115,6 +115,13 @@ export async function buildApp(overrides = {}) {
       capabilities: {
         paydunya: Boolean(config.paydunyaConfigured),
         whatsappCloud: Boolean(whatsapp.enabled),
+        whatsappTemplates: Boolean(
+          config.WHATSAPP_TEMPLATE_BOOKING &&
+          config.WHATSAPP_TEMPLATE_ORDER &&
+          config.WHATSAPP_TEMPLATE_BOOKING_UPDATE &&
+          config.WHATSAPP_TEMPLATE_ORDER_UPDATE &&
+          config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT
+        ),
         whatsappWebhookSigned: Boolean(config.WHATSAPP_APP_SECRET),
         whatsappHandoff: true
       }

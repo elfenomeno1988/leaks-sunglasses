@@ -5,8 +5,6 @@
    l'interface retombe sur la remise wa.me côté client.
    ════════════════════════════════════════════════════════════ */
 
-const GRAPH = "https://graph.facebook.com/v20.0";
-
 export const frDate = (iso) => {
   const s = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long", day: "numeric", month: "long", timeZone: "UTC"
@@ -179,9 +177,10 @@ export function handoffMessage(b) {
 
 export function createWhatsAppNotifier(config, logger = console) {
   const enabled = Boolean(config.WHATSAPP_CLOUD_TOKEN && config.WHATSAPP_PHONE_NUMBER_ID);
+  const graph = `https://graph.facebook.com/${config.META_GRAPH_VERSION || "v25.0"}`;
 
   async function post(payload) {
-    const res = await fetch(`${GRAPH}/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    const res = await fetch(`${graph}/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${config.WHATSAPP_CLOUD_TOKEN}`,

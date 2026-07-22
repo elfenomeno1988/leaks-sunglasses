@@ -80,7 +80,10 @@ paiements PayDunya vérifiés côté serveur.
    Ensuite, webhook Meta + PayDunya live + numéro WhatsApp réel :
    voir « Après le premier déploiement » ci-dessous.
 
-Mises à jour futures : `cd leaks-sunglasses && git pull && docker compose up -d --build`
+Mises à jour futures depuis ce workspace : `npm run deploy:production`.
+Le harness teste, pousse, sauvegarde PostgreSQL, construit une image immuable,
+contrôle `/health` et remet l'image précédente si nécessaire. Voir
+[`deploy/HARNESS.md`](deploy/HARNESS.md).
 
 ---
 

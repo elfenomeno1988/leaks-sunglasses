@@ -1,15 +1,40 @@
 # LEAKS — pile complète en local ou sur un VPS :  docker compose up -d
 services:
   app:
+    image: "leaks-sunglasses-app:${APP_IMAGE_TAG:-latest}"
     build: .
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_BIND_IP:-0.0.0.0}:${APP_PORT:-3000}:3000"
     env_file: .env
     environment:
       DATABASE_URL: postgres://leaks:leaks@db:5432/leaks
       PORT: 3000
     depends_on:
       db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: ["edge"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      LEAKS_DOMAIN: "${LEAKS_DOMAIN:-localhost}"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
         condition: service_healthy
     restart: unless-stopped
 
@@ -30,3 +55,5 @@ services:
 
 volumes:
   leaks_postgres:
+  caddy_data:
+  caddy_config:

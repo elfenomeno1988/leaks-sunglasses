@@ -21,6 +21,8 @@ set_var() {
 echo "→ Configuration WhatsApp…"
 set_var WHATSAPP_CLOUD_TOKEN "$TOKEN"
 set_var WHATSAPP_PHONE_NUMBER_ID "1239914522534675"
+set_var WHATSAPP_BUSINESS_ACCOUNT_ID "821478214384181"
+set_var META_GRAPH_VERSION "v25.0"
 set_var WHATSAPP_NUMBER "2250173891404"
 set_var WHATSAPP_CONCIERGE_NUMBER "2250173891404"
 set_var WHATSAPP_TEMPLATE_BOOKING "leaks_confirmation_rdv"
@@ -44,7 +46,7 @@ sleep 8
 echo "→ Compte administrateur…"
 docker compose exec -T app node server/scripts/create-admin.mjs "$ADMIN_EMAIL" "$ADMIN_PASS" </dev/null || true
 
-echo "→ Test d'envoi WhatsApp réel (vers le numéro concierge)…"
+echo "→ Test du modèle WhatsApp LEAKS (vers le numéro concierge)…"
 if docker compose exec -T app node server/scripts/whatsapp-test.mjs 2250173891404 </dev/null; then WA_OK=oui; else WA_OK=non; fi
 
 IP=$(curl -4 -s ifconfig.me 2>/dev/null || echo "IP_DU_VPS")

@@ -19,6 +19,8 @@ const schema = z.object({
      alors en remise « wa.me » (le client envoie lui-même sa carte). */
   WHATSAPP_CLOUD_TOKEN: z.string().optional().default(""),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional().default(""),
+  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().optional().default(""),
+  META_GRAPH_VERSION: z.string().regex(/^v\d+\.\d+$/).optional().default("v25.0"),
   WHATSAPP_CONCIERGE_NUMBER: z.string().regex(/^\d{8,15}$/).optional().default("2250173891404"),
 
   /* Hors fenêtre de 24 h, Meta n'accepte que des templates approuvés.
