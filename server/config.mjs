@@ -24,10 +24,15 @@ const schema = z.object({
   /* Hors fenêtre de 24 h, Meta n'accepte que des templates approuvés.
      Nom du template de confirmation (variables : date, heure, référence). */
   WHATSAPP_TEMPLATE_BOOKING: z.string().optional().default(""),
+  WHATSAPP_TEMPLATE_ORDER: z.string().optional().default(""),
+  WHATSAPP_TEMPLATE_BOOKING_UPDATE: z.string().optional().default(""),
+  WHATSAPP_TEMPLATE_ORDER_UPDATE: z.string().optional().default(""),
+  WHATSAPP_TEMPLATE_CONCIERGE_ALERT: z.string().optional().default(""),
   WHATSAPP_TEMPLATE_LANG: z.string().optional().default("fr"),
 
   /* Jeton de vérification du webhook (choisi par nous, recopié chez Meta). */
-  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional().default("")
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional().default(""),
+  WHATSAPP_APP_SECRET: z.string().optional().default("")
 });
 
 export function loadConfig(env = process.env) {
@@ -38,9 +43,19 @@ export function loadConfig(env = process.env) {
   }
 
   const config = result.data;
+  const hasPayDunyaKeys = [
+    config.PAYDUNYA_MASTER_KEY,
+    config.PAYDUNYA_PRIVATE_KEY,
+    config.PAYDUNYA_TOKEN
+  ].every((value) => value && !/^(?:a-configurer|your-)/i.test(value));
+  /* Une production ne doit jamais afficher un paiement qui partirait dans
+     le bac à sable PayDunya. Le mode test reste disponible en développement. */
+  const paydunyaConfigured = hasPayDunyaKeys &&
+    (config.NODE_ENV !== "production" || config.PAYDUNYA_MODE === "live");
   return {
     ...config,
     isProduction: config.NODE_ENV === "production",
-    publicSiteUrl: config.PUBLIC_SITE_URL.replace(/\/$/, "")
+    publicSiteUrl: config.PUBLIC_SITE_URL.replace(/\/$/, ""),
+    paydunyaConfigured
   };
 }

@@ -64,6 +64,13 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
   const phone = cleanPhone(values.customerPhone);
   const manual = values.paymentMethod === "whatsapp_wave";
 
+  if (!manual && !config.paydunyaConfigured) {
+    throw Object.assign(
+      new Error("Le paiement en ligne est momentanément indisponible. Choisissez la commande par WhatsApp."),
+      { statusCode: 503 }
+    );
+  }
+
   const inserted = await db.query(
     `insert into orders (
       reference, tracking_token, payment_method, payment_provider,

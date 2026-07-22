@@ -7,7 +7,7 @@
 
 const GRAPH = "https://graph.facebook.com/v20.0";
 
-const frDate = (iso) => {
+export const frDate = (iso) => {
   const s = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long", day: "numeric", month: "long", timeZone: "UTC"
   }).format(new Date(`${iso}T00:00:00Z`));
@@ -121,6 +121,31 @@ export function orderStatusMessage(status, order) {
   return lines ? lines(order).join("\n") : null;
 }
 
+const ORDER_STATUS_LABELS = {
+  ready: "Prête au studio",
+  shipped: "En route",
+  delivered: "Livrée"
+};
+
+export function orderStatusTemplateParameters(status, order) {
+  const detail = status === "ready"
+    ? "Retrait au studio, du lundi au samedi de 10 h à 19 h."
+    : status === "shipped"
+      ? "Le livreur vous appellera à l'approche."
+      : "Le concierge reste disponible pour tout ajustage.";
+  return [
+    ORDER_STATUS_LABELS[status] || status,
+    order.product_name,
+    order.variant_name,
+    order.reference,
+    detail
+  ];
+}
+
+export function bookingUpdateTemplateParameters(label, booking, detail) {
+  return [label, frDate(booking.date), booking.time, booking.reference, detail];
+}
+
 export function orderAlert(o) {
   return [
     `✦ Commande payée — ${o.reference}`,
@@ -173,6 +198,21 @@ export function createWhatsAppNotifier(config, logger = console) {
 
   const sendText = (to, body) => post({ to, type: "text", text: { preview_url: false, body } });
 
+  const sendTemplate = (to, name, parameters = []) => post({
+    to,
+    type: "template",
+    template: {
+      name,
+      language: { code: config.WHATSAPP_TEMPLATE_LANG },
+      ...(parameters.length ? {
+        components: [{
+          type: "body",
+          parameters: parameters.map((text) => ({ type: "text", text: String(text) }))
+        }]
+      } : {})
+    }
+  });
+
   /* Template de confirmation — seul format accepté par Meta pour un
      message à l'initiative de la marque hors fenêtre de 24 h. */
   const sendBookingTemplate = (to, b) => post({
@@ -215,6 +255,7 @@ export function createWhatsAppNotifier(config, logger = console) {
   return {
     enabled,
     sendText,
+    sendTemplate,
     sendHelloWorld,
 
     /* Fire-and-forget : une réservation n'échoue jamais parce que

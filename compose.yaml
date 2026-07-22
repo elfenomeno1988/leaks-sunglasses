@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     env_file: .env
     environment:
       DATABASE_URL: postgres://leaks:leaks@db:5432/leaks
@@ -14,13 +14,13 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: leaks
       POSTGRES_PASSWORD: leaks
       POSTGRES_DB: leaks
     volumes:
-      - leaks-pgdata:/var/lib/postgresql/data
+      - leaks_postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U leaks"]
       interval: 5s
@@ -29,4 +29,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  leaks-pgdata:
+  leaks_postgres:

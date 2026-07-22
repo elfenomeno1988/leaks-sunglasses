@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { createOrder, publicOrder } from "../services/orders.mjs";
 import { createBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
 import { handoffMessage, customerMessage, conciergeAlert, orderPaidMessage, orderAlert } from "../services/whatsapp.mjs";
@@ -7,6 +8,14 @@ const trackingSchema = z.object({
   reference: z.string().min(8).max(40),
   tracking: z.string().uuid()
 });
+
+export function verifyMetaSignature(secret, rawBody, signature) {
+  if (!secret || typeof rawBody !== "string" || typeof signature !== "string") return false;
+  const match = /^sha256=([a-f0-9]{64})$/i.exec(signature);
+  if (!match) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(match[1], "hex"));
+}
 
 export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
@@ -36,6 +45,9 @@ export async function storefrontRoutes(app, deps) {
     return {
       currency: catalog.currency,
       deliveryFees: { pickup: 0, abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
+      paymentMethods: config.paydunyaConfigured
+        ? ["wave", "mobile_money", "card", "whatsapp_wave"]
+        : ["whatsapp_wave"],
       products
     };
   });
@@ -78,8 +90,22 @@ export async function storefrontRoutes(app, deps) {
     };
     /* La confirmation et l'alerte passent par la file : envoi immédiat,
        reprises automatiques, jamais deux fois (dédoublonnage par référence). */
-    await notify.enqueue("booking-confirmation", booking.phone, customerMessage(booking), booking.reference);
-    await notify.enqueue("booking-alert", config.WHATSAPP_CONCIERGE_NUMBER, conciergeAlert(booking), booking.reference);
+    await notify.enqueue("booking-confirmation", booking.phone, customerMessage(booking), booking.reference,
+      config.WHATSAPP_TEMPLATE_BOOKING ? {
+        name: config.WHATSAPP_TEMPLATE_BOOKING,
+        parameters: [
+          new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })
+            .format(new Date(`${booking.date}T00:00:00Z`)),
+          booking.time,
+          booking.reference
+        ]
+      } : null);
+    const bookingAlert = conciergeAlert(booking);
+    await notify.enqueue("booking-alert", config.WHATSAPP_CONCIERGE_NUMBER, bookingAlert, booking.reference,
+      config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT ? {
+        name: config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT,
+        parameters: ["Nouveau rendez-vous", booking.reference, bookingAlert]
+      } : null);
     return reply.code(201).send({
       booking: publicBooking(row),
       whatsapp: {
@@ -100,7 +126,19 @@ export async function storefrontRoutes(app, deps) {
     return reply.code(403).send({ error: "Vérification refusée." });
   });
 
-  app.post("/api/whatsapp/webhook", async (request, reply) => {
+  app.post("/api/whatsapp/webhook", {
+    config: { rawBody: true, rateLimit: { max: 240, timeWindow: "1 minute" } }
+  }, async (request, reply) => {
+    const mustVerify = config.isProduction || Boolean(config.WHATSAPP_APP_SECRET);
+    if (mustVerify && !verifyMetaSignature(
+      config.WHATSAPP_APP_SECRET,
+      request.rawBody,
+      request.headers["x-hub-signature-256"]
+    )) {
+      request.log.warn("Signature webhook Meta refusée");
+      return reply.code(config.WHATSAPP_APP_SECRET ? 401 : 503)
+        .send({ error: "Webhook WhatsApp non authentifié." });
+    }
     const entries = request.body?.entry || [];
     for (const entry of entries) {
       for (const change of entry.changes || []) {
@@ -204,8 +242,25 @@ export async function syncPayment(db, provider, hooks = {}) {
     /* WhatsApp automatique au client + au concierge — la file dédoublonne
        par référence : jamais deux messages pour un même paiement. */
     if (hooks.notify) {
-      await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference);
-      await hooks.notify.enqueue("order-paid-alert", hooks.config?.WHATSAPP_CONCIERGE_NUMBER, orderAlert(order), order.reference);
+      const orderTemplate = hooks.config?.WHATSAPP_TEMPLATE_ORDER ? {
+        name: hooks.config.WHATSAPP_TEMPLATE_ORDER,
+        parameters: [
+          order.product_name,
+          order.variant_name,
+          order.reference,
+          order.serial_number
+            ? `${String(order.serial_number).padStart(2, "0")}${order.edition_size ? ` / ${order.edition_size}` : ""}`
+            : "En cours d'attribution",
+          order.delivery_method === "pickup" ? "Retrait au studio" : "Livraison à Abidjan"
+        ]
+      } : null;
+      await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference, orderTemplate);
+      const paidAlert = orderAlert(order);
+      await hooks.notify.enqueue("order-paid-alert", hooks.config?.WHATSAPP_CONCIERGE_NUMBER, paidAlert, order.reference,
+        hooks.config?.WHATSAPP_TEMPLATE_CONCIERGE_ALERT ? {
+          name: hooks.config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT,
+          parameters: ["Commande payée", order.reference, paidAlert]
+        } : null);
     }
   }
 }

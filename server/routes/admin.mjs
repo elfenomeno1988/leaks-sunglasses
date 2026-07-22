@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { orderStatusMessage, bookingConfirmedMessage } from "../services/whatsapp.mjs";
+import {
+  orderStatusMessage,
+  bookingConfirmedMessage,
+  bookingUpdateTemplateParameters,
+  orderStatusTemplateParameters,
+  frDate
+} from "../services/whatsapp.mjs";
 
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(8).max(200) });
 const updateSchema = z.object({
@@ -82,11 +88,29 @@ export async function adminRoutes(app, { db, auth, config, notify }) {
 
     /* Le concierge confirme → le client le sait, tout seul. */
     if (parsed.data.status === "confirmed" && notify) {
-      await notify.enqueue("booking-confirmed", booking.customer_phone, bookingConfirmedMessage({
+      const publicBooking = {
         reference: booking.reference,
         date: booking.booking_date instanceof Date ? booking.booking_date.toISOString().slice(0, 10) : String(booking.booking_date),
         time: booking.booking_time
-      }), booking.reference);
+      };
+      let template = null;
+      if (config.WHATSAPP_TEMPLATE_BOOKING_UPDATE) {
+        template = {
+          name: config.WHATSAPP_TEMPLATE_BOOKING_UPDATE,
+          parameters: bookingUpdateTemplateParameters(
+            "Confirmé",
+            publicBooking,
+            "Votre concierge vous attend au studio."
+          )
+        };
+      } else if (config.WHATSAPP_TEMPLATE_BOOKING) {
+        template = {
+          name: config.WHATSAPP_TEMPLATE_BOOKING,
+          parameters: [frDate(publicBooking.date), publicBooking.time, publicBooking.reference]
+        };
+      }
+      await notify.enqueue("booking-confirmed", booking.customer_phone,
+        bookingConfirmedMessage(publicBooking), booking.reference, template);
     }
     return { booking };
   });
@@ -114,7 +138,13 @@ export async function adminRoutes(app, { db, auth, config, notify }) {
        Dédoublonnage par (statut, référence) : une seule fois par étape. */
     if (notify && status !== current.rows[0].status) {
       const message = orderStatusMessage(status, order);
-      if (message) await notify.enqueue(`order-${status}`, order.customer_phone, message, order.reference);
+      if (message) {
+        const template = config.WHATSAPP_TEMPLATE_ORDER_UPDATE ? {
+          name: config.WHATSAPP_TEMPLATE_ORDER_UPDATE,
+          parameters: orderStatusTemplateParameters(status, order)
+        } : null;
+        await notify.enqueue(`order-${status}`, order.customer_phone, message, order.reference, template);
+      }
     }
     return { order };
   });

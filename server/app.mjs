@@ -12,6 +12,7 @@ import formbody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
+import rawBody from "fastify-raw-body";
 import qs from "qs";
 import { ZodError } from "zod";
 import { loadConfig } from "./config.mjs";
@@ -33,12 +34,13 @@ export async function buildApp(overrides = {}) {
 
   await app.register(cookie, { secret: config.COOKIE_SECRET, hook: "onRequest" });
   await app.register(formbody, { parser: (body) => qs.parse(body, { depth: 8, parameterLimit: 200 }) });
+  await app.register(rawBody, { field: "rawBody", global: false, encoding: "utf8", runFirst: true });
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(rateLimit, { global: true, max: 120, timeWindow: "1 minute" });
 
   const auth = createAuth({ db, config });
   const whatsapp = overrides.whatsapp || createWhatsAppNotifier(config, app.log);
-  const notify = overrides.notify || createNotificationCenter({ db, whatsapp, logger: app.log });
+  const notify = overrides.notify || createNotificationCenter({ db, whatsapp, config, logger: app.log });
   await storefrontRoutes(app, { db, catalog, config, paydunya, whatsapp, notify });
   await adminRoutes(app, { db, auth, config, notify });
   notify.start();
@@ -107,7 +109,16 @@ export async function buildApp(overrides = {}) {
       );
       notifications = r.rows[0] || null;
     } catch { /* table absente (première migration à venir) */ }
-    return { ok: true, notifications };
+    return {
+      ok: true,
+      notifications,
+      capabilities: {
+        paydunya: Boolean(config.paydunyaConfigured),
+        whatsappCloud: Boolean(whatsapp.enabled),
+        whatsappWebhookSigned: Boolean(config.WHATSAPP_APP_SECRET),
+        whatsappHandoff: true
+      }
+    };
   });
 
   /* ── 404 : JSON pour l'API, page habillée pour le reste ─────── */

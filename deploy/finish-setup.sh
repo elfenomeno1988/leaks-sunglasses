@@ -5,7 +5,8 @@
 #     | bash -s -- 'JETON_WHATSAPP' [email_admin] [mot_de_passe_admin]
 set -euo pipefail
 
-TOKEN="${1:?Il manque le jeton WhatsApp (developers.facebook.com → WhatsApp → API Setup → Générer un token)}"
+TOKEN="${WHATSAPP_CLOUD_TOKEN:-${1:-}}"
+: "${TOKEN:?Il manque le jeton WhatsApp (utilisez la variable WHATSAPP_CLOUD_TOKEN)}"
 ADMIN_EMAIL="${2:-admin@leaks.ci}"
 ADMIN_PASS="${3:-$(openssl rand -base64 12 | tr -d '=+/' | cut -c1-14)-Lk1}"
 
@@ -19,11 +20,22 @@ set_var() {
 
 echo "→ Configuration WhatsApp…"
 set_var WHATSAPP_CLOUD_TOKEN "$TOKEN"
-set_var WHATSAPP_PHONE_NUMBER_ID "1213414528524275"
+set_var WHATSAPP_PHONE_NUMBER_ID "1239914522534675"
 set_var WHATSAPP_NUMBER "2250173891404"
 set_var WHATSAPP_CONCIERGE_NUMBER "2250173891404"
+set_var WHATSAPP_TEMPLATE_BOOKING "leaks_confirmation_rdv"
+set_var WHATSAPP_TEMPLATE_ORDER "leaks_confirmation_commande"
+set_var WHATSAPP_TEMPLATE_BOOKING_UPDATE "leaks_suivi_rdv"
+set_var WHATSAPP_TEMPLATE_ORDER_UPDATE "leaks_suivi_commande"
+set_var WHATSAPP_TEMPLATE_CONCIERGE_ALERT "leaks_alerte_concierge"
 set_var WHATSAPP_TEMPLATE_LANG "fr"
-set_var WHATSAPP_WEBHOOK_VERIFY_TOKEN "894a3b54b8d9e716016db9510cd99826"
+WEBHOOK_TOKEN="$(grep '^WHATSAPP_WEBHOOK_VERIFY_TOKEN=' .env 2>/dev/null | cut -d= -f2- || true)"
+if [ -z "$WEBHOOK_TOKEN" ]; then WEBHOOK_TOKEN="$(openssl rand -hex 24)"; fi
+set_var WHATSAPP_WEBHOOK_VERIFY_TOKEN "$WEBHOOK_TOKEN"
+
+if [ -n "${WHATSAPP_APP_SECRET:-}" ]; then
+  set_var WHATSAPP_APP_SECRET "$WHATSAPP_APP_SECRET"
+fi
 
 echo "→ Redémarrage de l'application…"
 docker compose up -d --build --remove-orphans >/dev/null 2>&1

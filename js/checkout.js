@@ -6,6 +6,7 @@ const productId = params.get("product") || "genesio";
 const requestedVariant = params.get("variant") || "";
 let product;
 let deliveryFee = 2000;
+let paymentMethods = ["whatsapp_wave"];
 
 const money = (value, suffix = " F CFA") => new Intl.NumberFormat("fr-FR").format(value) + suffix;
 const $ = (selector) => document.querySelector(selector);
@@ -25,6 +26,18 @@ async function initialize() {
   try {
     const catalog = await api("/api/catalog");
     deliveryFee = catalog.deliveryFees.abidjan_delivery;
+    paymentMethods = Array.isArray(catalog.paymentMethods) && catalog.paymentMethods.length
+      ? catalog.paymentMethods : ["whatsapp_wave"];
+    document.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
+      const available = paymentMethods.includes(input.value);
+      input.closest("label").hidden = !available;
+      input.disabled = !available;
+    });
+    const selectedPayment = form.elements.paymentMethod.value;
+    if (!paymentMethods.includes(selectedPayment)) {
+      const fallback = form.querySelector(`input[name="paymentMethod"][value="${paymentMethods[0]}"]`);
+      if (fallback) fallback.checked = true;
+    }
     product = catalog.products.find((entry) => entry.id === productId) || catalog.products[0];
     const select = $("#variant");
     product.variants.forEach((variant) => {

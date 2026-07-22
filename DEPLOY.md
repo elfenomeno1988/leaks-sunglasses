@@ -31,8 +31,13 @@ paiements PayDunya vérifiés côté serveur.
    WHATSAPP_PHONE_NUMBER_ID=…
    WHATSAPP_CONCIERGE_NUMBER=2250173891404
    WHATSAPP_TEMPLATE_BOOKING=leaks_confirmation_rdv
+   WHATSAPP_TEMPLATE_ORDER=leaks_confirmation_commande
+   WHATSAPP_TEMPLATE_BOOKING_UPDATE=leaks_suivi_rdv
+   WHATSAPP_TEMPLATE_ORDER_UPDATE=leaks_suivi_commande
+   WHATSAPP_TEMPLATE_CONCIERGE_ALERT=leaks_alerte_concierge
    WHATSAPP_TEMPLATE_LANG=fr
    WHATSAPP_WEBHOOK_VERIFY_TOKEN=<mot de passe de votre choix>
+   WHATSAPP_APP_SECRET=<Paramètres de l'app Meta → Général → Clé secrète>
    ```
 
 4. **Domaine** : Settings → Networking → Custom Domain →
@@ -81,12 +86,13 @@ Mises à jour futures : `cd leaks-sunglasses && git pull && docker compose up -d
    - Callback URL : `https://votre-domaine/api/whatsapp/webhook`
    - Verify token : la valeur de `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
    - Champ abonné : **messages**.
+   - `WHATSAPP_APP_SECRET` doit contenir la clé secrète de l'app Meta ; le
+     serveur refuse en production tout webhook dont la signature est absente.
    Dès lors, les accusés (délivré / lu) remplissent la colonne
    `delivery_status` des notifications.
-2. **Template WhatsApp** — faites approuver `leaks_confirmation_rdv`
-   (GUIDE-WHATSAPP.md §5) pour que les confirmations partent même hors
-   fenêtre de 24 h. Sans lui, la file réessaie puis l'interface bascule
-   en remise wa.me — rien ne se perd, mais le template est la vraie échelle.
+2. **Templates WhatsApp** — vérifiez que les cinq modèles LEAKS listés dans
+   GUIDE-WHATSAPP.md §5 sont `Actif`. Ils couvrent confirmations, rappels,
+   suivi de commande et alertes concierge hors de la fenêtre de 24 h.
 3. **PayDunya** — passez `PAYDUNYA_MODE=live` avec les clés live, et
    déclarez l'IPN : `https://votre-domaine/api/payments/paydunya/ipn`.
 4. **Numéro réel** — remplacez le numéro de test Meta par le numéro
@@ -97,7 +103,7 @@ Mises à jour futures : `cd leaks-sunglasses && git pull && docker compose up -d
 
 - **File d'attente** : chaque message (confirmation, alerte, rappel,
   commande payée / prête / expédiée / livrée) est écrit en base puis envoyé
-  par un worker — reprises exponentielles (1, 2, 4… 30 min, 8 essais),
+  par un worker — reprises exponentielles (1, 2, 4… 6 h, 12 essais),
   aucun envoi ne bloque une requête client, aucun doublon possible
   (dédoublonnage par référence).
 - **Rappels automatiques** : le matin du rendez-vous, chaque client reçoit

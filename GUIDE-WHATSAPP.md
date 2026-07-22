@@ -1,9 +1,9 @@
 # LEAKS — Activer l'envoi WhatsApp automatique (API officielle Meta)
 
-Le serveur sait déjà tout faire : dès qu'une réservation est créée, il envoie
-la confirmation au client et l'alerte au concierge. Il ne lui manque que
-**deux identifiants**, que seul le propriétaire du compte peut créer.
-Comptez ~10 minutes.
+Le serveur envoie automatiquement les confirmations de rendez-vous et de
+commande au client, ainsi qu'une copie privée au concierge. Les identifiants
+Meta et les modèles approuvés doivent être présents dans l'environnement de
+production.
 
 ---
 
@@ -34,8 +34,14 @@ Dans `.env` :
 
 ```
 WHATSAPP_CLOUD_TOKEN=EAAG...votre-jeton
-WHATSAPP_PHONE_NUMBER_ID=123456789012345
+WHATSAPP_PHONE_NUMBER_ID=1239914522534675
 WHATSAPP_CONCIERGE_NUMBER=2250173891404
+WHATSAPP_TEMPLATE_BOOKING=leaks_confirmation_rdv
+WHATSAPP_TEMPLATE_ORDER=leaks_confirmation_commande
+WHATSAPP_TEMPLATE_BOOKING_UPDATE=leaks_suivi_rdv
+WHATSAPP_TEMPLATE_ORDER_UPDATE=leaks_suivi_commande
+WHATSAPP_TEMPLATE_CONCIERGE_ALERT=leaks_alerte_concierge
+WHATSAPP_TEMPLATE_LANG=fr
 ```
 
 Puis testez avec votre numéro :
@@ -55,7 +61,10 @@ Pour recevoir les réponses des clients et les accusés de livraison :
 
 1. Choisissez un mot de passe quelconque → `WHATSAPP_WEBHOOK_VERIFY_TOKEN=...`
    dans `.env`.
-2. Meta → WhatsApp → **Configuration** → Webhook :
+2. Copiez la **clé secrète de l'app** depuis Paramètres → Général dans
+   `WHATSAPP_APP_SECRET`. Elle permet de vérifier cryptographiquement chaque
+   événement envoyé par Meta.
+3. Meta → WhatsApp → **Configuration** → Webhook :
    - Callback URL : `https://votre-domaine/api/whatsapp/webhook`
    - Verify token : le même mot de passe
    - Abonnez le champ **messages**.
@@ -68,37 +77,40 @@ Pour recevoir les réponses des clients et les accusés de livraison :
 2. **Votre vrai numéro** : WhatsApp → API Setup → « Add phone number »
    (le numéro ne doit pas être déjà lié à une app WhatsApp classique).
    Mettez à jour `WHATSAPP_PHONE_NUMBER_ID`.
-3. **Template de confirmation** : WhatsApp Manager → Message templates →
-   créez `leaks_confirmation_rdv`, langue **fr**, catégorie **Utility**, corps :
+3. **Modèles de production** : WhatsApp Manager → Message templates. Les
+   cinq modèles utilitaires utilisés par le serveur sont :
+
+   - `leaks_confirmation_rdv` : confirmation client (date, heure, référence)
+   - `leaks_confirmation_commande` : confirmation client (modèle, variation,
+     référence, numéro de série, mode de réception)
+   - `leaks_suivi_rdv` : confirmation manuelle et rappel de rendez-vous
+   - `leaks_suivi_commande` : paire prête, expédiée ou livrée
+   - `leaks_alerte_concierge` : copie privée envoyée au numéro du concierge
+
+   Le modèle de rendez-vous contient :
 
    > LEAKS ✦ Votre essayage privé est retenu.
    >
    > {{1}} à {{2}} — LEAKS Studio, Abidjan.
    > Référence {{3}}.
    >
-   > Un empêchement, une envie particulière ? Répondez à ce message —
-   > votre concierge vous lit.
+   > Pour toute modification, contactez votre concierge LEAKS.
 
    Une fois approuvé (quelques heures en général) :
 
    ```
    WHATSAPP_TEMPLATE_BOOKING=leaks_confirmation_rdv
+   WHATSAPP_TEMPLATE_ORDER=leaks_confirmation_commande
+   WHATSAPP_TEMPLATE_BOOKING_UPDATE=leaks_suivi_rdv
+   WHATSAPP_TEMPLATE_ORDER_UPDATE=leaks_suivi_commande
+   WHATSAPP_TEMPLATE_CONCIERGE_ALERT=leaks_alerte_concierge
    WHATSAPP_TEMPLATE_LANG=fr
    ```
 
    Sans template, Meta n'autorise l'envoi libre que dans les 24 h suivant
    un message du client ; avec le template, la confirmation part toujours.
 
----
-
-**Pourquoi je ne peux pas le faire à votre place :** la création du compte
-et des jetons passe par votre identité Meta (connexion Facebook, vérification
-d'entreprise). Tout le reste — l'envoi, les messages, le webhook, la reprise
-wa.me en cas de panne — est déjà codé et actif.
-
----
-
-## Étape 6 — Passer des 5 testeurs aux centaines de clients (gratuit)
+## Étape 6 — Passer des 5 testeurs aux centaines de clients
 
 La limite de 5 destinataires n'est pas payante : c'est le **mode test**.
 On en sort en trois gestes, tous gratuits :
@@ -122,8 +134,8 @@ La montée est automatique quand vous envoyez avec une bonne qualité
 (pas de spam, clients qui répondent). Aucun paiement.
 
 ### Combien ça coûte à l'usage ?
-- Réponses aux clients dans les 24 h : **gratuites, illimitées**
-- Confirmations/rappels (« utility ») dans la fenêtre de 24 h : **gratuits**
-- Hors fenêtre : template requis, facturé quelques centimes de F CFA —
-  et Meta offre 1 000 conversations de service par mois.
-Pour LEAKS (dizaines de RDV/commandes par jour) : **coût ≈ 0**.
+
+Meta peut facturer les messages initiés par l'entreprise selon la catégorie du
+modèle, le pays du destinataire et la fenêtre de service. Un moyen de paiement
+est donc requis en production, même lorsque certains messages bénéficient d'un
+tarif nul. Consultez toujours la grille Meta en vigueur avant un envoi massif.

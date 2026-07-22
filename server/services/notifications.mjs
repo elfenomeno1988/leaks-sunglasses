@@ -7,24 +7,28 @@
    une requête, et un échec réseau se rejoue tout seul.
    ════════════════════════════════════════════════════════════ */
 
-import { bookingReminderMessage } from "./whatsapp.mjs";
+import { bookingReminderMessage, bookingUpdateTemplateParameters, frDate } from "./whatsapp.mjs";
 
 const BATCH = 10;
-const MAX_ATTEMPTS = 8;
+/* En cas de validation Meta encore en cours, la file reste vivante plus de
+   24 h (1, 2, 4… puis 6 h), au lieu d'abandonner après environ deux heures. */
+const MAX_ATTEMPTS = 12;
 const TICK_MS = 20_000;
 const REMINDER_TICK_MS = 10 * 60_000;
 
-export function createNotificationCenter({ db, whatsapp, logger = console }) {
+export function createNotificationCenter({ db, whatsapp, config = {}, logger = console }) {
   /* ── Écrire dans la file (idempotent par genre + référence) ── */
 
-  async function enqueue(kind, recipient, body, reference = null) {
+  async function enqueue(kind, recipient, body, reference = null, template = null) {
     const to = String(recipient || "").replace(/\D/g, "");
     if (!to || !body) return;
     await db.query(
-      `insert into notifications (kind, recipient, body, reference)
-       values ($1, $2, $3, $4)
+      `insert into notifications
+         (kind, recipient, body, reference, template_name, template_parameters)
+       values ($1, $2, $3, $4, $5, $6::jsonb)
        on conflict (kind, reference) where reference is not null do nothing`,
-      [kind, to, body, reference]
+      [kind, to, body, reference, template?.name || null,
+        template?.parameters ? JSON.stringify(template.parameters) : null]
     );
     setImmediate(drain); // l'envoi part dans la foulée, hors requête
   }
@@ -51,21 +55,23 @@ export function createNotificationCenter({ db, whatsapp, logger = console }) {
              order by created_at
              limit ${BATCH}
              for update skip locked)
-           returning id, recipient, body, attempts`
+           returning id, recipient, body, attempts, template_name, template_parameters`
         );
         if (!rows.length) break;
 
         for (const n of rows) {
           try {
-            const result = await whatsapp.sendText(n.recipient, n.body);
+            const result = n.template_name
+              ? await whatsapp.sendTemplate(n.recipient, n.template_name, n.template_parameters || [])
+              : await whatsapp.sendText(n.recipient, n.body);
             await db.query(
               `update notifications set status='sent', sent_at=now(), meta_message_id=$2, last_error=null where id=$1`,
               [n.id, result?.messages?.[0]?.id || null]
             );
           } catch (error) {
             const failed = n.attempts >= MAX_ATTEMPTS;
-            /* Recul exponentiel : 1, 2, 4, 8… minutes, plafonné à 30. */
-            const delayMin = Math.min(2 ** (n.attempts - 1), 30);
+            /* Recul exponentiel : 1, 2, 4, 8… minutes, plafonné à 6 h. */
+            const delayMin = Math.min(2 ** (n.attempts - 1), 360);
             await db.query(
               `update notifications set status=$2,
                next_attempt_at = now() + ($3 || ' minutes')::interval,
@@ -96,11 +102,28 @@ export function createNotificationCenter({ db, whatsapp, logger = console }) {
            and booking_time > to_char(now() + interval '1 hour', 'HH24:MI')`
       );
       for (const b of rows) {
-        await enqueue("booking-reminder", b.customer_phone, bookingReminderMessage({
+        const booking = {
           reference: b.reference,
           date: b.booking_date instanceof Date ? b.booking_date.toISOString().slice(0, 10) : String(b.booking_date),
           time: b.booking_time
-        }), b.reference);
+        };
+        let template = null;
+        if (config.WHATSAPP_TEMPLATE_BOOKING_UPDATE) {
+          template = {
+            name: config.WHATSAPP_TEMPLATE_BOOKING_UPDATE,
+            parameters: bookingUpdateTemplateParameters(
+              "Rappel pour aujourd'hui",
+              booking,
+              "Votre essayage privé vous attend au studio."
+            )
+          };
+        } else if (config.WHATSAPP_TEMPLATE_BOOKING) {
+          template = {
+            name: config.WHATSAPP_TEMPLATE_BOOKING,
+            parameters: [frDate(booking.date), booking.time, booking.reference]
+          };
+        }
+        await enqueue("booking-reminder", b.customer_phone, bookingReminderMessage(booking), b.reference, template);
       }
     } catch (error) {
       logger.error?.({ error: String(error) }, "Planification des rappels en erreur");

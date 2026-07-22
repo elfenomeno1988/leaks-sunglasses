@@ -1,18 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { loadCatalog, resolveLineItem } from "../server/catalog.mjs";
 import { createPayDunyaClient } from "../server/payments/paydunya.mjs";
 import { checkoutSchema, createOrder, publicOrder } from "../server/services/orders.mjs";
-import { syncPayment } from "../server/routes/storefront.mjs";
+import { syncPayment, verifyMetaSignature } from "../server/routes/storefront.mjs";
 import { buildApp } from "../server/app.mjs";
+import { createNotificationCenter } from "../server/services/notifications.mjs";
+import { loadConfig } from "../server/config.mjs";
+import { bookingUpdateTemplateParameters, orderStatusTemplateParameters } from "../server/services/whatsapp.mjs";
 
 const config = {
   NODE_ENV: "test", PORT: 3000, PUBLIC_SITE_URL: "http://localhost:3000",
   COOKIE_SECRET: "a".repeat(32), DATABASE_URL: "postgres://unused",
   PAYDUNYA_MODE: "test", PAYDUNYA_MASTER_KEY: "master-test-key",
   PAYDUNYA_PRIVATE_KEY: "private", PAYDUNYA_TOKEN: "token",
+  paydunyaConfigured: true,
   WHATSAPP_NUMBER: "2250173891404", DELIVERY_ABIDJAN_FEE: 2000,
+  WHATSAPP_APP_SECRET: "meta-app-secret",
   isProduction: false, publicSiteUrl: "http://localhost:3000"
 };
 
@@ -31,6 +36,39 @@ test("checkout validates Côte d'Ivoire contact and delivery address", () => {
   assert.equal(checkoutSchema.parse(base).customerPhone, "0700000000");
   assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+225 07 00 00 00 00" }).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.safeParse({ ...base, deliveryMethod: "abidjan_delivery", deliveryAddress: "court" }).success, false);
+});
+
+test("online payment is refused before creating an order when PayDunya is not configured", async () => {
+  const catalog = await loadCatalog();
+  const calls = [];
+  const db = { query: async (...args) => { calls.push(args); return { rows: [{ sold: 0, reserved: 0 }] }; } };
+  await assert.rejects(
+    createOrder({
+      db,
+      catalog,
+      config: { ...config, paydunyaConfigured: false },
+      paydunya: {},
+      input: {
+        productId: "genesio", variantId: "deep-brown", quantity: 1,
+        customerName: "Awa Kouassi", customerEmail: "awa@example.com",
+        customerPhone: "0700000000", deliveryMethod: "pickup", paymentMethod: "wave"
+      }
+    }),
+    (error) => error.statusCode === 503 && /WhatsApp/.test(error.message)
+  );
+  assert.equal(calls.some(([sql]) => /insert into orders/.test(sql)), false);
+});
+
+test("production never exposes PayDunya sandbox checkout", () => {
+  const baseEnv = {
+    DATABASE_URL: "postgres://unused",
+    COOKIE_SECRET: "x".repeat(32),
+    PAYDUNYA_MASTER_KEY: "master",
+    PAYDUNYA_PRIVATE_KEY: "private",
+    PAYDUNYA_TOKEN: "token"
+  };
+  assert.equal(loadConfig({ ...baseEnv, NODE_ENV: "production", PAYDUNYA_MODE: "test" }).paydunyaConfigured, false);
+  assert.equal(loadConfig({ ...baseEnv, NODE_ENV: "production", PAYDUNYA_MODE: "live" }).paydunyaConfigured, true);
 });
 
 test("PayDunya channels and callback hash are restricted correctly", () => {
@@ -56,6 +94,44 @@ test("public order response does not expose customer or provider secrets", () =>
   assert.equal(result.product, "Genesio LK-00");
   assert.equal("customer_email" in result, false);
   assert.equal("provider_token" in result, false);
+});
+
+test("notification queue stores approved Meta template data", async () => {
+  const calls = [];
+  const db = { query: async (...args) => { calls.push(args); return { rows: [] }; } };
+  const center = createNotificationCenter({
+    db,
+    whatsapp: { enabled: false },
+    logger: { warn() {}, error() {} }
+  });
+  await center.enqueue("order-paid", " +225 07 00 00 00 00 ", "Commande confirmée", "LK-TEST", {
+    name: "leaks_confirmation_commande",
+    parameters: ["LUNETTES 01", "Noir", "LK-TEST", "01 / 100", "Retrait au studio"]
+  });
+  assert.match(calls[0][0], /template_name/);
+  assert.equal(calls[0][1][1], "2250700000000");
+  assert.equal(calls[0][1][4], "leaks_confirmation_commande");
+  assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "01 / 100", "Retrait au studio"]);
+});
+
+test("all delayed WhatsApp updates have approved-template payloads", () => {
+  const booking = { date: "2026-07-23", time: "14:00", reference: "RDV-LEAKS-1234" };
+  const appointment = bookingUpdateTemplateParameters("Confirmé", booking, "Votre concierge vous attend.");
+  assert.equal(appointment.length, 5);
+  assert.equal(appointment[3], booking.reference);
+
+  const order = { product_name: "Genesio", variant_name: "Deep Brown", reference: "LK-LEAKS-1234" };
+  const update = orderStatusTemplateParameters("shipped", order);
+  assert.deepEqual(update.slice(0, 4), ["En route", "Genesio", "Deep Brown", "LK-LEAKS-1234"]);
+});
+
+test("Meta webhook signatures are verified before processing", () => {
+  const raw = JSON.stringify({ object: "whatsapp_business_account", entry: [] });
+  const secret = "meta-app-secret";
+  const signature = `sha256=${createHash("sha256").update("").digest("hex")}`;
+  assert.equal(verifyMetaSignature(secret, raw, signature), false);
+  const valid = `sha256=${createHmac("sha256", secret).update(raw).digest("hex")}`;
+  assert.equal(verifyMetaSignature(secret, raw, valid), true);
 });
 
 test("order creation persists server totals before creating the payment invoice", async () => {
@@ -91,6 +167,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   const catalogResponse = await app.inject({ method: "GET", url: "/api/catalog" });
   assert.equal(catalogResponse.statusCode, 200);
   assert.equal(catalogResponse.json().products.length, 7);
+  assert.deepEqual(catalogResponse.json().paymentMethods, ["wave", "mobile_money", "card", "whatsapp_wave"]);
   const galleryRedirect = await app.inject({ method: "GET", url: "/gallery" });
   assert.equal(galleryRedirect.statusCode, 302);
   assert.equal(galleryRedirect.headers.location, "/gallery.html");
@@ -110,6 +187,15 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.equal(badDate.statusCode, 400);
   const webhookDenied = await app.inject({ method: "GET", url: "/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=faux&hub.challenge=x" });
   assert.equal(webhookDenied.statusCode, 403);
+  const webhookPayload = JSON.stringify({ object: "whatsapp_business_account", entry: [] });
+  const unsignedWebhook = await app.inject({ method: "POST", url: "/api/whatsapp/webhook", payload: webhookPayload, headers: { "content-type": "application/json" } });
+  assert.equal(unsignedWebhook.statusCode, 401);
+  const webhookSignature = `sha256=${createHmac("sha256", config.WHATSAPP_APP_SECRET).update(webhookPayload).digest("hex")}`;
+  const signedWebhook = await app.inject({ method: "POST", url: "/api/whatsapp/webhook", payload: webhookPayload, headers: { "content-type": "application/json", "x-hub-signature-256": webhookSignature } });
+  assert.equal(signedWebhook.statusCode, 200);
+  const health = await app.inject({ method: "GET", url: "/health" });
+  assert.equal(health.json().capabilities.paydunya, true);
+  assert.equal(health.json().capabilities.whatsappWebhookSigned, true);
   const privateFile = await app.inject({ method: "GET", url: "/server/config.mjs" });
   assert.equal(privateFile.statusCode, 404);
   const callback = await app.inject({ method: "POST", url: "/api/payments/paydunya/ipn", headers: { "content-type": "application/x-www-form-urlencoded" }, payload: "data%5Bhash%5D=valid-hash&data%5Binvoice%5D%5Btoken%5D=test_invoice" });
