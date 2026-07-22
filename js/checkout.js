@@ -27,8 +27,18 @@ async function initialize() {
     deliveryFee = catalog.deliveryFees.abidjan_delivery;
     product = catalog.products.find((entry) => entry.id === productId) || catalog.products[0];
     const select = $("#variant");
-    product.variants.forEach((variant) => select.add(new Option(variant.name, variant.id)));
-    select.value = product.variants.some((variant) => variant.id === requestedVariant) ? requestedVariant : product.variants[0].id;
+    product.variants.forEach((variant) => {
+      const soldOut = variant.remaining === 0;
+      const low = !soldOut && variant.remaining != null && variant.remaining <= 5;
+      const label = soldOut ? `${variant.name} — épuisé`
+        : low ? `${variant.name} — plus que ${variant.remaining}` : variant.name;
+      const option = new Option(label, variant.id);
+      option.disabled = soldOut;
+      select.add(option);
+    });
+    const firstAvailable = product.variants.find((variant) => variant.remaining !== 0) || product.variants[0];
+    const requested = product.variants.find((variant) => variant.id === requestedVariant);
+    select.value = requested && requested.remaining !== 0 ? requested.id : firstAvailable.id;
     $("#product-name").textContent = `${product.name} — ${product.sku}`;
     $("#product-description").textContent = product.description;
     updateSummary();

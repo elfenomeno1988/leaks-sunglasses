@@ -11,11 +11,34 @@ const trackingSchema = z.object({
 export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
-  app.get("/api/catalog", async () => ({
-    currency: catalog.currency,
-    deliveryFees: { pickup: 0, abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
-    products: catalog.list
-  }));
+  app.get("/api/catalog", async () => {
+    /* Restant par coloris — les payées décomptent l'édition. */
+    let sold = new Map();
+    try {
+      const r = await db.query(
+        `select product_id, variant_id, coalesce(sum(quantity), 0)::int as sold
+         from orders where payment_status = 'paid' and status <> 'cancelled'
+         group by product_id, variant_id`
+      );
+      sold = new Map(r.rows.map((x) => [`${x.product_id}:${x.variant_id}`, Number(x.sold)]));
+    } catch { /* base indisponible : on sert le catalogue sans stock */ }
+
+    const products = catalog.list.map((p) => ({
+      ...p,
+      variants: p.variants.map((v) => ({
+        ...v,
+        remaining: p.editionSize
+          ? Math.max(0, p.editionSize - (sold.get(`${p.id}:${v.id}`) || 0))
+          : null
+      }))
+    }));
+
+    return {
+      currency: catalog.currency,
+      deliveryFees: { pickup: 0, abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
+      products
+    };
+  });
 
   app.post("/api/orders", {
     config: { rateLimit: { max: 8, timeWindow: "10 minutes" } }
@@ -155,11 +178,34 @@ export async function syncPayment(db, provider, hooks = {}) {
     [mapped, orderStatus, invoice.receipt_url || null, provider, paidAt, invoice.token]
   );
 
-  /* Paiement confirmé → WhatsApp automatique au client + au concierge.
-     La file dédoublonne par référence : jamais deux messages pour un même paiement. */
   const order = result.rows[0];
-  if (order && mapped === "paid" && hooks.notify) {
-    await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference);
-    await hooks.notify.enqueue("order-paid-alert", hooks.config?.WHATSAPP_CONCIERGE_NUMBER, orderAlert(order), order.reference);
+  if (order && mapped === "paid") {
+    /* Numéro de série : attribué une seule fois, au paiement. L'index
+       unique (produit, coloris, numéro) tranche les courses — on retente. */
+    if (order.serial_number == null) {
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        try {
+          const s = await db.query(
+            `update orders set serial_number = (
+               select coalesce(max(serial_number), 0) + 1 from orders
+               where product_id = $2 and variant_id = $3 and serial_number is not null)
+             where id = $1 and serial_number is null
+             returning serial_number`,
+            [order.id, order.product_id, order.variant_id]
+          );
+          order.serial_number = s.rows[0]?.serial_number ?? order.serial_number;
+          break;
+        } catch (error) {
+          if (error?.code !== "23505") break; // seule la collision d'index se rejoue
+        }
+      }
+    }
+
+    /* WhatsApp automatique au client + au concierge — la file dédoublonne
+       par référence : jamais deux messages pour un même paiement. */
+    if (hooks.notify) {
+      await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference);
+      await hooks.notify.enqueue("order-paid-alert", hooks.config?.WHATSAPP_CONCIERGE_NUMBER, orderAlert(order), order.reference);
+    }
   }
 }

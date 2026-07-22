@@ -8,11 +8,28 @@
       "price": 20000,
       "description": "Carrée sculptée, contraste net et rendu studio.",
       "variants": [
-        { "id": "deep-brown", "name": "Deep Brown", "image": "/assets/img/products/genesio/deep-brown/front.png" },
-        { "id": "gold", "name": "Gold", "image": "/assets/img/products/genesio/gold/front.png" },
-        { "id": "grey-dark", "name": "Grey Dark", "image": "/assets/img/products/genesio/grey-dark/front.png" },
-        { "id": "grey-light", "name": "Grey Light", "image": "/assets/img/products/genesio/grey-light/front.png" }
-      ]
+        {
+          "id": "deep-brown",
+          "name": "Deep Brown",
+          "image": "/assets/img/products/genesio/deep-brown/front.png"
+        },
+        {
+          "id": "gold",
+          "name": "Gold",
+          "image": "/assets/img/products/genesio/gold/front.png"
+        },
+        {
+          "id": "grey-dark",
+          "name": "Grey Dark",
+          "image": "/assets/img/products/genesio/grey-dark/front.png"
+        },
+        {
+          "id": "grey-light",
+          "name": "Grey Light",
+          "image": "/assets/img/products/genesio/grey-light/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "genesis-honey",
@@ -21,8 +38,13 @@
       "price": 20000,
       "description": "Acétate miel, lumière chaude et profil plus doux.",
       "variants": [
-        { "id": "honey", "name": "Honey", "image": "/assets/img/products/genesis-honey/honey/front.png" }
-      ]
+        {
+          "id": "honey",
+          "name": "Honey",
+          "image": "/assets/img/products/genesis-honey/honey/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "marco",
@@ -31,9 +53,18 @@
       "price": 20000,
       "description": "Rectangle brun-vert avec contrastes nets.",
       "variants": [
-        { "id": "brown-green", "name": "Brown Green", "image": "/assets/img/products/marco/brown-green/front.png" },
-        { "id": "olive", "name": "Olive", "image": "/assets/img/products/marco/olive/front.png" }
-      ]
+        {
+          "id": "brown-green",
+          "name": "Brown Green",
+          "image": "/assets/img/products/marco/brown-green/front.png"
+        },
+        {
+          "id": "olive",
+          "name": "Olive",
+          "image": "/assets/img/products/marco/olive/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "meral",
@@ -42,8 +73,13 @@
       "price": 20000,
       "description": "Noir profond, ligne compacte et tenue sèche.",
       "variants": [
-        { "id": "black", "name": "Black", "image": "/assets/img/products/meral/black/front.png" }
-      ]
+        {
+          "id": "black",
+          "name": "Black",
+          "image": "/assets/img/products/meral/black/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "nano",
@@ -52,9 +88,18 @@
       "price": 20000,
       "description": "Format micro, verres photochromiques Light Control.",
       "variants": [
-        { "id": "grey-black", "name": "Grey Black", "image": "/assets/img/products/nano/grey-black/front.png" },
-        { "id": "honey-brown", "name": "Honey Brown", "image": "/assets/img/products/nano/honey-brown/front.png" }
-      ]
+        {
+          "id": "grey-black",
+          "name": "Grey Black",
+          "image": "/assets/img/products/nano/grey-black/front.png"
+        },
+        {
+          "id": "honey-brown",
+          "name": "Honey Brown",
+          "image": "/assets/img/products/nano/honey-brown/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "octa",
@@ -63,15 +108,48 @@
       "price": 20000,
       "description": "Huit angles, palette vive et finitions translucides.",
       "variants": [
-        { "id": "white-champagne", "name": "White Champagne", "image": "/assets/img/products/octa/white-champagne/front.png" },
-        { "id": "clear-blue", "name": "Clear Blue", "image": "/assets/img/products/octa/clear-blue/front.png" },
-        { "id": "clear-black", "name": "Clear Black", "image": "/assets/img/products/octa/clear-black/front.png" },
-        { "id": "clear-pink", "name": "Clear Pink", "image": "/assets/img/products/octa/clear-pink/front.png" },
-        { "id": "clear-red", "name": "Clear Red", "image": "/assets/img/products/octa/clear-red/front.png" },
-        { "id": "pink-nude", "name": "Pink Nude", "image": "/assets/img/products/octa/pink-nude/front.png" },
-        { "id": "blue-gradient", "name": "Blue Gradient", "image": "/assets/img/products/octa/blue-gradient/three-quarter.png" },
-        { "id": "white-honey", "name": "White Honey", "image": "/assets/img/products/octa/white-honey/front.png" }
-      ]
+        {
+          "id": "white-champagne",
+          "name": "White Champagne",
+          "image": "/assets/img/products/octa/white-champagne/front.png"
+        },
+        {
+          "id": "clear-blue",
+          "name": "Clear Blue",
+          "image": "/assets/img/products/octa/clear-blue/front.png"
+        },
+        {
+          "id": "clear-black",
+          "name": "Clear Black",
+          "image": "/assets/img/products/octa/clear-black/front.png"
+        },
+        {
+          "id": "clear-pink",
+          "name": "Clear Pink",
+          "image": "/assets/img/products/octa/clear-pink/front.png"
+        },
+        {
+          "id": "clear-red",
+          "name": "Clear Red",
+          "image": "/assets/img/products/octa/clear-red/front.png"
+        },
+        {
+          "id": "pink-nude",
+          "name": "Pink Nude",
+          "image": "/assets/img/products/octa/pink-nude/front.png"
+        },
+        {
+          "id": "blue-gradient",
+          "name": "Blue Gradient",
+          "image": "/assets/img/products/octa/blue-gradient/three-quarter.png"
+        },
+        {
+          "id": "white-honey",
+          "name": "White Honey",
+          "image": "/assets/img/products/octa/white-honey/front.png"
+        }
+      ],
+      "editionSize": 50
     },
     {
       "id": "oryx",
@@ -80,11 +158,28 @@
       "price": 20000,
       "description": "Cadres graphiques, jeux de matières et de contraste.",
       "variants": [
-        { "id": "black-and-white", "name": "Black & White", "image": "/assets/img/products/oryx/black-and-white/front.png" },
-        { "id": "cheetah-brown", "name": "Cheetah Brown", "image": "/assets/img/products/oryx/cheetah-brown/front.png" },
-        { "id": "gradient-brown", "name": "Gradient Brown", "image": "/assets/img/products/oryx/gradient-brown/front.png" },
-        { "id": "gradient-purple", "name": "Gradient Purple", "image": "/assets/img/products/oryx/gradient-purple/front.png" }
-      ]
+        {
+          "id": "black-and-white",
+          "name": "Black & White",
+          "image": "/assets/img/products/oryx/black-and-white/front.png"
+        },
+        {
+          "id": "cheetah-brown",
+          "name": "Cheetah Brown",
+          "image": "/assets/img/products/oryx/cheetah-brown/front.png"
+        },
+        {
+          "id": "gradient-brown",
+          "name": "Gradient Brown",
+          "image": "/assets/img/products/oryx/gradient-brown/front.png"
+        },
+        {
+          "id": "gradient-purple",
+          "name": "Gradient Purple",
+          "image": "/assets/img/products/oryx/gradient-purple/front.png"
+        }
+      ],
+      "editionSize": 50
     }
   ]
 }

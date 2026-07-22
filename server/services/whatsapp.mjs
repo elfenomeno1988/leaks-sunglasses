@@ -70,18 +70,22 @@ export function bookingReminderMessage(b) {
 }
 
 export function orderPaidMessage(o) {
+  const serial = o.serial_number
+    ? `Votre exemplaire : Nº ${String(o.serial_number).padStart(2, "0")}${o.edition_size ? ` / ${o.edition_size}` : ""}`
+    : null;
   return [
     "LEAKS ✦ Votre commande est confirmée.",
     "",
     `${o.product_name} — ${o.variant_name}`,
     `Référence ${o.reference}`,
+    serial,
     "",
     o.delivery_method === "pickup"
       ? "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle vous attend au studio."
       : "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle part vers vous, à Abidjan.",
     "",
     "Chaque paire est gravée de son numéro — la vôtre existe déjà."
-  ].join("\n");
+  ].filter((l) => l !== null).join("\n");
 }
 
 const ORDER_STATUS_LINES = {

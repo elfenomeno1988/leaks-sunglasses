@@ -71,8 +71,11 @@ test("order creation persists server totals before creating the payment invoice"
   const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 22000); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
   const result = await createOrder({ db, catalog, config, paydunya, input: { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" } });
   assert.equal(result.redirectUrl, "https://pay.test/invoice");
-  assert.equal(calls[0].params[13], 22000);
-  assert.match(calls[0].sql, /insert into orders/);
+  /* La vérification de stock passe d'abord ; on cible l'insert par son SQL. */
+  const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
+  assert.ok(insertCall, "insert into orders attendu");
+  assert.equal(insertCall.params[13], 22000);
+  assert.equal(insertCall.params[19], 50); // edition_size figée sur la commande
 });
 
 test("Fastify serves commerce pages and the public catalogue", async () => {

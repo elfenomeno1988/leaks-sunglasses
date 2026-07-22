@@ -1,5 +1,6 @@
 import path from "node:path";
 import dns from "node:dns";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 /* Sur certains réseaux (macOS notamment), Node préfère l'IPv6 et échoue à
@@ -61,14 +62,39 @@ export async function buildApp(overrides = {}) {
     allowedPath(pathName) {
       return pathName === "/" || pathName === "/index.html" || pathName === "/gallery.html" || pathName === "/checkout.html" || pathName === "/confirmation.html" ||
         pathName === "/admin.html" || pathName === "/campagne.html" || pathName === "/manifeste.html" ||
-        pathName === "/m.html" || pathName === "/manifest.webmanifest" ||
+        pathName === "/m.html" || pathName === "/manifest.webmanifest" || pathName === "/legal.html" || pathName === "/404.html" ||
         pathName.startsWith("/assets/") || pathName.startsWith("/css/") || pathName.startsWith("/js/");
     }
   });
 
-  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste", "m"]) {
+  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste", "m", "legal"]) {
     app.get(`/${page}`, async (_request, reply) => reply.redirect(`/${page}.html`));
   }
+
+  /* ── SEO : robots + sitemap, construits sur l'URL publique ──── */
+
+  app.get("/robots.txt", async (_request, reply) => {
+    return reply.type("text/plain").send([
+      "User-agent: *",
+      "Allow: /",
+      "Disallow: /admin.html",
+      "Disallow: /api/",
+      "",
+      `Sitemap: ${config.publicSiteUrl}/sitemap.xml`
+    ].join("\n"));
+  });
+
+  app.get("/sitemap.xml", async (_request, reply) => {
+    const pages = [
+      "/", "/campagne.html", "/manifeste.html", "/m.html",
+      ...catalog.list.map((p) => `/gallery.html?product=${p.id}`)
+    ];
+    const urls = pages.map((p) =>
+      `  <url><loc>${config.publicSiteUrl}${p.replaceAll("&", "&amp;")}</loc></url>`).join("\n");
+    return reply.type("application/xml").send(
+      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`
+    );
+  });
   app.get("/health", async () => {
     await db.query("select 1");
     /* Profondeur de la file WhatsApp — pour la supervision. */
@@ -82,6 +108,15 @@ export async function buildApp(overrides = {}) {
       notifications = r.rows[0] || null;
     } catch { /* table absente (première migration à venir) */ }
     return { ok: true, notifications };
+  });
+
+  /* ── 404 : JSON pour l'API, page habillée pour le reste ─────── */
+  const notFoundHtml = await readFile(path.join(root, "404.html"), "utf8").catch(() => "Page introuvable.");
+  app.setNotFoundHandler((request, reply) => {
+    if (request.url.startsWith("/api/")) {
+      return reply.code(404).send({ error: "Ressource introuvable." });
+    }
+    return reply.code(404).type("text/html; charset=utf-8").send(notFoundHtml);
   });
 
   app.setErrorHandler((error, request, reply) => {

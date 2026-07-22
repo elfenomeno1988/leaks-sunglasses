@@ -33,6 +33,30 @@ function makeReference() {
 export async function createOrder({ db, catalog, config, paydunya, input }) {
   const values = checkoutSchema.parse(input);
   const line = resolveLineItem(catalog, values.productId, values.variantId, values.quantity);
+
+  /* Édition limitée : les payées comptent, plus les paiements en cours
+     (réservés 30 minutes). Jamais de 51e paire sur une édition de 50. */
+  const editionSize = Number(line.product.editionSize) || null;
+  if (editionSize) {
+    const counts = await db.query(
+      `select
+         coalesce(sum(quantity) filter (where payment_status = 'paid'), 0)::int as sold,
+         coalesce(sum(quantity) filter (where payment_status = 'pending'
+           and created_at > now() - interval '30 minutes'), 0)::int as reserved
+       from orders
+       where product_id = $1 and variant_id = $2 and status <> 'cancelled'`,
+      [line.product.id, line.variant.id]
+    );
+    const row = counts.rows[0] || {};
+    const remaining = editionSize - Number(row.sold || 0) - Number(row.reserved || 0);
+    if (line.quantity > remaining) {
+      const message = remaining > 0
+        ? `Édition presque épuisée — il reste ${remaining} exemplaire${remaining > 1 ? "s" : ""} de ce coloris.`
+        : `Ce coloris est épuisé — édition limitée à ${editionSize} exemplaires.`;
+      throw Object.assign(new Error(message), { statusCode: 409 });
+    }
+  }
+
   const deliveryFee = values.deliveryMethod === "abidjan_delivery" ? config.DELIVERY_ABIDJAN_FEE : 0;
   const totalAmount = line.subtotal + deliveryFee;
   const reference = makeReference();
@@ -45,14 +69,15 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
       reference, tracking_token, payment_method, payment_provider,
       product_id, product_sku, product_name, variant_id, variant_name,
       unit_price, quantity, delivery_method, delivery_fee, total_amount,
-      customer_name, customer_email, customer_phone, delivery_address, customer_note
-    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+      customer_name, customer_email, customer_phone, delivery_address, customer_note, edition_size
+    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
     returning *`,
     [
       reference, trackingToken, values.paymentMethod, manual ? "manual" : "paydunya",
       line.product.id, line.product.sku, line.product.name, line.variant.id, line.variant.name,
       line.product.price, line.quantity, values.deliveryMethod, deliveryFee, totalAmount,
-      values.customerName, values.customerEmail, phone, values.deliveryAddress || null, values.customerNote || null
+      values.customerName, values.customerEmail, phone, values.deliveryAddress || null, values.customerNote || null,
+      Number(line.product.editionSize) || null
     ]
   );
   const order = inserted.rows[0];
@@ -135,6 +160,8 @@ export function publicOrder(order) {
     currency: order.currency,
     deliveryMethod: order.delivery_method,
     createdAt: order.created_at,
-    receiptUrl: order.receipt_url
+    receiptUrl: order.receipt_url,
+    serialNumber: order.serial_number ?? null,
+    editionSize: order.edition_size ?? null
   };
 }
