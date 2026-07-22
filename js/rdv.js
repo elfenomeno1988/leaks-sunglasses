@@ -237,9 +237,9 @@
     goTo("done");
     ticket();
 
-    /* La carte part toute seule : WhatsApp s'ouvre, déjà rédigé.
-       (Si l'API Cloud a déjà tout envoyé côté serveur, rien à ouvrir.) */
-    if (state.delivery !== "sent") {
+    /* En mode automatique, le worker Meta prend la main sans demander un
+       second geste au client. Le lien prérempli ne sert qu'au vrai repli. */
+    if (state.delivery === "handoff") {
       window.open($("#wa-send").href, "_blank", "noopener");
     }
   });
@@ -284,16 +284,21 @@
 
   function prepareDone() {
     const sent = state.delivery === "sent";
+    const queued = state.delivery === "queued";
+    const automatic = sent || queued;
     const msg = waMessage();
-    $("#wa-bubble").textContent = sent ? customerEcho() : msg;
-    $("#wa-send").textContent = sent ? "Ouvrir la conversation" : "Envoyer sur WhatsApp";
-    $("#wa-send").href = sent
+    $("#wa-bubble").textContent = automatic ? customerEcho() : msg;
+    $("#wa-send").textContent = automatic ? "Ouvrir WhatsApp" : "Envoyer sur WhatsApp";
+    $("#wa-send").href = automatic
       ? `https://wa.me/${CONFIG.whatsappNumber}`
       : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
     $("#ics-dl").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;
     $("#xp-done-lead").innerHTML = sent
       ? `C'est fait — votre confirmation est <b>déjà dans votre WhatsApp</b>.
          <small>Référence ${state.reference}. Répondez au concierge pour toute modification.</small>`
+      : queued
+        ? `C'est fait — votre confirmation WhatsApp part <b>automatiquement</b>.
+           <small>Référence ${state.reference}. Elle arrivera sur le numéro que vous avez indiqué.</small>`
       : state.reference
         ? `Votre créneau est retenu sous la référence <b>${state.reference}</b>.
            <small>WhatsApp s'ouvre avec votre carte, déjà rédigée — envoyez-la telle quelle.</small>`
@@ -321,7 +326,9 @@
     $("#tk-time").textContent = state.time || "—";
     $("#tk-name").textContent = state.name || "—";
     $("#tk-status").innerHTML = state.reference
-      ? "Créneau retenu.<br>Envoyez la carte sur WhatsApp pour confirmation."
+      ? state.delivery === "queued" || state.delivery === "sent"
+        ? "Créneau retenu.<br>Confirmation WhatsApp automatique."
+        : "Créneau retenu.<br>Envoyez la carte sur WhatsApp pour confirmation."
       : state.time
         ? "Encore un geste —<br>vos coordonnées, et la carte est prête."
         : "Composez votre rendez-vous —<br>la carte s'écrit avec vous.";

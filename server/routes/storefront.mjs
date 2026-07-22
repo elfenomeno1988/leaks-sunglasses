@@ -17,6 +17,10 @@ export function verifyMetaSignature(secret, rawBody, signature) {
   return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(match[1], "hex"));
 }
 
+export function bookingWhatsAppDelivery(templateApproved) {
+  return templateApproved ? "queued" : "handoff";
+}
+
 export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
@@ -88,6 +92,11 @@ export async function storefrontRoutes(app, deps) {
       phone: row.customer_phone,
       note: row.customer_note || ""
     };
+    const bookingTemplateApproved = Boolean(
+      whatsapp.enabled &&
+      config.WHATSAPP_TEMPLATE_BOOKING &&
+      await whatsapp.isTemplateApproved?.(config.WHATSAPP_TEMPLATE_BOOKING)
+    );
     /* La confirmation et l'alerte passent par la file : envoi immédiat,
        reprises automatiques, jamais deux fois (dédoublonnage par référence). */
     await notify.enqueue("booking-confirmation", booking.phone, customerMessage(booking), booking.reference,
@@ -109,7 +118,9 @@ export async function storefrontRoutes(app, deps) {
     return reply.code(201).send({
       booking: publicBooking(row),
       whatsapp: {
-        delivery: whatsapp.enabled ? "sent" : "handoff", // file ≈ envoyé (quelques secondes)
+        /* La requête ne prétend plus que Meta a livré le message : le worker
+           l'envoie juste après la réponse et conserve les reprises en base. */
+        delivery: bookingWhatsAppDelivery(bookingTemplateApproved),
         conciergeNumber: config.WHATSAPP_NUMBER,
         handoffText: handoffMessage(booking)             // la carte, déjà écrite
       }

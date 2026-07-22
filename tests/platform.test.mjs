@@ -4,7 +4,7 @@ import { createHash, createHmac } from "node:crypto";
 import { loadCatalog, resolveLineItem } from "../server/catalog.mjs";
 import { createPayDunyaClient } from "../server/payments/paydunya.mjs";
 import { checkoutSchema, createOrder, publicOrder } from "../server/services/orders.mjs";
-import { syncPayment, verifyMetaSignature } from "../server/routes/storefront.mjs";
+import { bookingWhatsAppDelivery, syncPayment, verifyMetaSignature } from "../server/routes/storefront.mjs";
 import { buildApp } from "../server/app.mjs";
 import { createNotificationCenter } from "../server/services/notifications.mjs";
 import { loadConfig } from "../server/config.mjs";
@@ -121,6 +121,11 @@ test("notification queue stores approved Meta template data", async () => {
   assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "01 / 100", "Retrait au studio"]);
 });
 
+test("booking response distinguishes automatic queue from WhatsApp handoff", () => {
+  assert.equal(bookingWhatsAppDelivery(true), "queued");
+  assert.equal(bookingWhatsAppDelivery(false), "handoff");
+});
+
 test("all delayed WhatsApp updates have approved-template payloads", () => {
   const booking = { date: "2026-07-23", time: "14:00", reference: "RDV-LEAKS-1234" };
   const appointment = bookingUpdateTemplateParameters("Confirmé", booking, "Votre concierge vous attend.");
@@ -156,6 +161,32 @@ test("WhatsApp Cloud uses the configured Graph version and template payload", as
     assert.equal(payload.template.name, "leaks_confirmation_rdv");
     assert.equal(payload.template.language.code, "fr");
     assert.equal(payload.template.components[0].parameters.length, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("WhatsApp automation activates only after Meta approves the French template", async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async (url) => {
+    calls += 1;
+    assert.match(String(url), /v25\.0\/821478214384181\/message_templates/);
+    return new Response(JSON.stringify({
+      data: [{ name: "leaks_confirmation_rdv", status: "APPROVED", language: "fr" }]
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const whatsapp = createWhatsAppNotifier({
+      ...config,
+      WHATSAPP_CLOUD_TOKEN: "server-token",
+      WHATSAPP_PHONE_NUMBER_ID: "1239914522534675",
+      WHATSAPP_BUSINESS_ACCOUNT_ID: "821478214384181",
+      WHATSAPP_TEMPLATE_LANG: "fr"
+    });
+    assert.equal(await whatsapp.isTemplateApproved("leaks_confirmation_rdv"), true);
+    assert.equal(await whatsapp.isTemplateApproved("leaks_confirmation_rdv"), true);
+    assert.equal(calls, 1, "le statut approuvé doit être mis en cache");
   } finally {
     globalThis.fetch = originalFetch;
   }

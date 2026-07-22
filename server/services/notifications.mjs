@@ -12,7 +12,9 @@ import { bookingReminderMessage, bookingUpdateTemplateParameters, frDate } from 
 const BATCH = 10;
 /* En cas de validation Meta encore en cours, la file reste vivante plus de
    24 h (1, 2, 4… puis 6 h), au lieu d'abandonner après environ deux heures. */
-const MAX_ATTEMPTS = 12;
+/* Jusqu'à environ trois jours de reprises : un modèle Meta encore en examen
+   peut ainsi être délivré automatiquement dès son approbation. */
+const MAX_ATTEMPTS = 20;
 const TICK_MS = 20_000;
 const REMINDER_TICK_MS = 10 * 60_000;
 

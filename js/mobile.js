@@ -305,9 +305,9 @@
     prepareDone();
     rdvPanel("done");
 
-    /* La carte part toute seule : WhatsApp s'ouvre, déjà rédigé.
-       (Si l'API Cloud a déjà tout envoyé, inutile d'ouvrir quoi que ce soit.) */
-    if (rdv.delivery !== "sent") {
+    /* L'ouverture préremplie ne sert que lorsque l'API Cloud n'est pas
+       disponible. En automatique, aucun second geste n'est demandé. */
+    if (rdv.delivery === "handoff") {
       const opened = window.open($("#t-wa").href, "_blank", "noopener");
       if (!opened) $("#t-wa").classList.add("pulse");
     }
@@ -348,15 +348,19 @@
 
   function prepareDone() {
     const sent = rdv.delivery === "sent";
+    const queued = rdv.delivery === "queued";
+    const automatic = sent || queued;
     $("#done-lead").textContent = sent
       ? "C'est fait — votre confirmation est déjà dans votre WhatsApp."
+      : queued
+        ? "C'est fait — votre confirmation WhatsApp part automatiquement."
       : rdv.reference
         ? "Votre créneau est retenu. WhatsApp s'ouvre avec votre carte — envoyez-la telle quelle."
         : "Votre demande est prête. Envoyez-la — le concierge bloque le créneau à réception.";
     $("#t-ref").textContent = rdv.reference || "· · ·";
     $("#t-when").textContent = `${frDate(rdv.date)} · ${rdv.time}`;
-    $("#t-wa").textContent = sent ? "Ouvrir la conversation" : "Envoyer sur WhatsApp";
-    $("#t-wa").href = sent
+    $("#t-wa").textContent = automatic ? "Ouvrir WhatsApp" : "Envoyer sur WhatsApp";
+    $("#t-wa").href = automatic
       ? `https://wa.me/${CONFIG.whatsappNumber}`
       : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;
     $("#t-ics").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;

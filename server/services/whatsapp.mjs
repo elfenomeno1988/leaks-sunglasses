@@ -178,6 +178,7 @@ export function handoffMessage(b) {
 export function createWhatsAppNotifier(config, logger = console) {
   const enabled = Boolean(config.WHATSAPP_CLOUD_TOKEN && config.WHATSAPP_PHONE_NUMBER_ID);
   const graph = `https://graph.facebook.com/${config.META_GRAPH_VERSION || "v25.0"}`;
+  const templateStatusCache = new Map();
 
   async function post(payload) {
     const res = await fetch(`${graph}/${config.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
@@ -211,6 +212,44 @@ export function createWhatsAppNotifier(config, logger = console) {
       } : {})
     }
   });
+
+  /* Le nom configuré ne suffit pas : un modèle PENDING/REJECTED ne peut pas
+     initier une conversation. Ce contrôle court, mis en cache, permet au site
+     de conserver le repli wa.me jusqu'au passage réel à APPROVED, puis de
+     basculer automatiquement sans nouveau déploiement. */
+  async function isTemplateApproved(name) {
+    if (!enabled || !config.WHATSAPP_BUSINESS_ACCOUNT_ID || !name) return false;
+    const cached = templateStatusCache.get(name);
+    if (cached && cached.expiresAt > Date.now()) return cached.approved;
+
+    try {
+      const params = new URLSearchParams({
+        name,
+        fields: "name,status,language",
+        limit: "20"
+      });
+      const res = await fetch(
+        `${graph}/${config.WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates?${params}`,
+        {
+          headers: { "Authorization": `Bearer ${config.WHATSAPP_CLOUD_TOKEN}` },
+          signal: AbortSignal.timeout(2500)
+        }
+      );
+      if (!res.ok) throw new Error(`Meta templates ${res.status}`);
+      const payload = await res.json();
+      const approved = (payload.data || []).some((template) =>
+        template.name === name &&
+        template.status === "APPROVED" &&
+        (!config.WHATSAPP_TEMPLATE_LANG || template.language === config.WHATSAPP_TEMPLATE_LANG)
+      );
+      templateStatusCache.set(name, { approved, expiresAt: Date.now() + (approved ? 300_000 : 60_000) });
+      return approved;
+    } catch (error) {
+      logger.warn?.({ error: String(error) }, "Statut du modèle WhatsApp indisponible — repli wa.me");
+      templateStatusCache.set(name, { approved: false, expiresAt: Date.now() + 30_000 });
+      return false;
+    }
+  }
 
   /* Template de confirmation — seul format accepté par Meta pour un
      message à l'initiative de la marque hors fenêtre de 24 h. */
@@ -256,6 +295,7 @@ export function createWhatsAppNotifier(config, logger = console) {
     sendText,
     sendTemplate,
     sendHelloWorld,
+    isTemplateApproved,
 
     /* Fire-and-forget : une réservation n'échoue jamais parce que
        la notification n'est pas partie. */
