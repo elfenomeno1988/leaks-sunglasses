@@ -30,10 +30,10 @@ docker compose up -d --build --remove-orphans >/dev/null 2>&1
 sleep 8
 
 echo "→ Compte administrateur…"
-docker compose exec -T app node server/scripts/create-admin.mjs "$ADMIN_EMAIL" "$ADMIN_PASS" || true
+docker compose exec -T app node server/scripts/create-admin.mjs "$ADMIN_EMAIL" "$ADMIN_PASS" </dev/null || true
 
 echo "→ Test d'envoi WhatsApp réel (vers le numéro concierge)…"
-if docker compose exec -T app node server/scripts/whatsapp-test.mjs 2250173891404; then WA_OK=oui; else WA_OK=non; fi
+if docker compose exec -T app node server/scripts/whatsapp-test.mjs 2250173891404 </dev/null; then WA_OK=oui; else WA_OK=non; fi
 
 IP=$(curl -4 -s ifconfig.me 2>/dev/null || echo "IP_DU_VPS")
 echo
