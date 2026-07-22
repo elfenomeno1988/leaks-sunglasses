@@ -183,6 +183,9 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   const appResponse = await app.inject({ method: "GET", url: "/m.html" });
   assert.equal(appResponse.statusCode, 200);
   assert.match(appResponse.body, /Réserver un essayage/);
+  const privacyResponse = await app.inject({ method: "GET", url: "/privacy.html" });
+  assert.equal(privacyResponse.statusCode, 200);
+  assert.match(privacyResponse.body, /Politique de confidentialité/);
   const badDate = await app.inject({ method: "GET", url: "/api/bookings/availability?date=pas-une-date" });
   assert.equal(badDate.statusCode, 400);
   const webhookDenied = await app.inject({ method: "GET", url: "/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=faux&hub.challenge=x" });

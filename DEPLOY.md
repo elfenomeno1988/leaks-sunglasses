@@ -43,6 +43,8 @@ paiements PayDunya vérifiés côté serveur.
 4. **Domaine** : Settings → Networking → Custom Domain →
    `www.leaks-sunglasses.com` (ou autre) → ajoutez le CNAME chez votre
    registrar. HTTPS est automatique.
+   Puis Meta for Developers → Paramètres de l'app → Général → URL de la
+   politique de confidentialité : `https://votre-domaine/privacy.html`.
 5. **Compte admin** : Railway → service app → Shell :
    `node server/scripts/create-admin.mjs admin@leaks.ci <mot-de-passe>`
 6. Vérifiez `https://votre-domaine/health` → `{"ok":true}`.
@@ -73,6 +75,8 @@ paiements PayDunya vérifiés côté serveur.
 5. **Compte admin** :
    `docker compose exec app node server/scripts/create-admin.mjs admin@leaks.ci <mot-de-passe>`
 6. Vérifiez `https://votre-domaine.ci/health` → `{"ok":true}`.
+   Utilisez ensuite `https://votre-domaine.ci/privacy.html` comme URL de
+   politique de confidentialité dans Meta for Developers → Paramètres → Général.
    Ensuite, webhook Meta + PayDunya live + numéro WhatsApp réel :
    voir « Après le premier déploiement » ci-dessous.
 

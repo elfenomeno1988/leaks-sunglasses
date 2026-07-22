@@ -98,6 +98,7 @@ l'administration sont servis par le même conteneur Node.
 index.html                     vitrine et réservation d'essayage
 checkout.html                  checkout e-commerce
 confirmation.html              suivi privé client
+privacy.html                   politique de confidentialité publique
 admin.html                     gestion des commandes
 data/catalog.json              catalogue affiché et validé côté serveur
 server/app.mjs                 serveur Fastify

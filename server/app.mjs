@@ -64,12 +64,12 @@ export async function buildApp(overrides = {}) {
     allowedPath(pathName) {
       return pathName === "/" || pathName === "/index.html" || pathName === "/gallery.html" || pathName === "/checkout.html" || pathName === "/confirmation.html" ||
         pathName === "/admin.html" || pathName === "/campagne.html" || pathName === "/manifeste.html" ||
-        pathName === "/m.html" || pathName === "/manifest.webmanifest" || pathName === "/legal.html" || pathName === "/404.html" ||
+        pathName === "/m.html" || pathName === "/manifest.webmanifest" || pathName === "/legal.html" || pathName === "/privacy.html" || pathName === "/404.html" ||
         pathName.startsWith("/assets/") || pathName.startsWith("/css/") || pathName.startsWith("/js/");
     }
   });
 
-  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste", "m", "legal"]) {
+  for (const page of ["gallery", "checkout", "confirmation", "admin", "campagne", "manifeste", "m", "legal", "privacy"]) {
     app.get(`/${page}`, async (_request, reply) => reply.redirect(`/${page}.html`));
   }
 
@@ -88,7 +88,7 @@ export async function buildApp(overrides = {}) {
 
   app.get("/sitemap.xml", async (_request, reply) => {
     const pages = [
-      "/", "/campagne.html", "/manifeste.html", "/m.html",
+      "/", "/campagne.html", "/manifeste.html", "/m.html", "/privacy.html",
       ...catalog.list.map((p) => `/gallery.html?product=${p.id}`)
     ];
     const urls = pages.map((p) =>
