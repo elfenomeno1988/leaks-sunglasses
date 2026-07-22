@@ -24,7 +24,11 @@ git pull --ff-only 2>/dev/null || true
 # 3. Configuration de production (créée une seule fois)
 if [ ! -f .env ]; then
   echo "→ Configuration initiale…"
-  IP=$(curl -s ifconfig.me 2>/dev/null || echo "localhost")
+  # -4 : IPv4 uniquement (une IPv6 contient des « : » → URL invalide)
+  IP=$(curl -4 -s ifconfig.me 2>/dev/null || true)
+  case "$IP" in
+    *[!0-9.]*|"") IP="localhost" ;;
+  esac
   cat > .env <<EOF
 NODE_ENV=production
 PORT=3000
@@ -52,7 +56,7 @@ for i in $(seq 1 12); do
   sleep 5
 done
 
-IP=$(curl -s ifconfig.me 2>/dev/null || echo "IP_DU_VPS")
+IP=$(curl -4 -s ifconfig.me 2>/dev/null || echo "IP_DU_VPS")
 echo
 echo "══════════════════════════════════════════"
 if curl -fs http://localhost:3000/health >/dev/null 2>&1; then
