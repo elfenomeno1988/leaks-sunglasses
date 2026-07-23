@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { resolveLineItem } from "../catalog.mjs";
+import { normalizeWhatsAppPhone } from "./phones.mjs";
 
 export const checkoutSchema = z.object({
   productId: z.string().min(1).max(40),
@@ -8,9 +9,9 @@ export const checkoutSchema = z.object({
   quantity: z.coerce.number().int().min(1).max(2),
   customerName: z.string().trim().min(2).max(120),
   customerEmail: z.string().trim().email().max(200),
-  customerPhone: z.string().trim().transform((value) => value.replace(/\D/g, ""))
-    .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro ivoirien invalide.")
-    .transform((value) => value.startsWith("225") ? value : `225${value}`),
+  customerPhone: z.string().trim().transform(normalizeWhatsAppPhone)
+    .refine(Boolean, "Numéro WhatsApp international invalide.")
+    .transform(String),
   deliveryMethod: z.literal("abidjan_delivery"),
   deliveryAddress: z.string().trim().max(300).optional().default(""),
   customerNote: z.string().trim().max(500).optional().default(""),
@@ -20,11 +21,6 @@ export const checkoutSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["deliveryAddress"], message: "Précisez l'adresse de livraison." });
   }
 });
-
-function cleanPhone(value) {
-  const digits = value.replace(/\D/g, "");
-  return digits.startsWith("225") ? digits.slice(3) : digits;
-}
 
 function makeReference() {
   const date = new Date().toISOString().slice(2, 10).replaceAll("-", "");
@@ -46,7 +42,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
   const totalAmount = line.subtotal + deliveryFee;
   const reference = makeReference();
   const trackingToken = randomUUID();
-  const phone = cleanPhone(values.customerPhone);
+  const phone = values.customerPhone;
   const manual = values.paymentMethod === "whatsapp_wave";
 
   if (!manual && !config.paydunyaConfigured) {
@@ -106,7 +102,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
       `Quantité : ${line.quantity}`,
       `Total : ${totalAmount.toLocaleString("fr-FR")} F CFA`,
       `Nom : ${values.customerName}`,
-      `Téléphone : +225 ${phone}`
+      `Téléphone : +${phone}`
     ].join("\n");
     return {
       order,

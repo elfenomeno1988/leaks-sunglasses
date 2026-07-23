@@ -1,16 +1,17 @@
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
+import { normalizeWhatsAppPhone } from "./phones.mjs";
 
 export const SLOT_TIMES = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 const MAX_DAYS_AHEAD = 30;
 
-const bookingSchema = z.object({
+export const bookingSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide."),
   time: z.enum(SLOT_TIMES, { message: "Créneau invalide." }),
   name: z.string().trim().min(2, "Nom trop court.").max(80),
-  phone: z.string().trim().transform((value) => value.replace(/\D/g, ""))
-    .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro WhatsApp ivoirien invalide.")
-    .transform((value) => value.startsWith("225") ? value : `225${value}`),
+  phone: z.string().trim().transform(normalizeWhatsAppPhone)
+    .refine(Boolean, "Numéro WhatsApp international invalide.")
+    .transform(String),
   note: z.string().trim().max(500).optional().default(""),
   models: z.array(z.string().trim().min(1).max(40)).max(12).optional().default([])
 });

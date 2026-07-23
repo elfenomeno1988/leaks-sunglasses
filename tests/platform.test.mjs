@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 import { loadCatalog, resolveLineItem } from "../server/catalog.mjs";
 import { createPayDunyaClient } from "../server/payments/paydunya.mjs";
 import { checkoutSchema, createOrder, publicOrder } from "../server/services/orders.mjs";
+import { bookingSchema } from "../server/services/bookings.mjs";
+import { normalizeWhatsAppPhone } from "../server/services/phones.mjs";
 import { bookingWhatsAppDelivery, syncPayment, verifyMetaSignature } from "../server/routes/storefront.mjs";
 import { buildApp } from "../server/app.mjs";
 import { createNotificationCenter } from "../server/services/notifications.mjs";
@@ -85,11 +87,24 @@ test("browser and server catalogues stay aligned and reference real assets", asy
   }
 });
 
-test("checkout validates Côte d'Ivoire contact and delivery address", () => {
+test("checkout accepts international WhatsApp numbers independently from delivery", () => {
   const base = { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" };
   assert.equal(checkoutSchema.parse(base).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+225 07 00 00 00 00" }).customerPhone, "2250700000000");
+  assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+33 6 12 34 56 78" }).customerPhone, "33612345678");
+  assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+1 (202) 555-0147" }).customerPhone, "12025550147");
   assert.equal(checkoutSchema.safeParse({ ...base, deliveryMethod: "abidjan_delivery", deliveryAddress: "court" }).success, false);
+});
+
+test("booking and checkout share E.164 WhatsApp normalization", () => {
+  assert.equal(normalizeWhatsAppPhone("00221 77 123 45 67"), "221771234567");
+  assert.equal(normalizeWhatsAppPhone("+44 7700 900123"), "447700900123");
+  assert.equal(normalizeWhatsAppPhone("0700000000"), "2250700000000");
+  assert.equal(normalizeWhatsAppPhone("+0123"), null);
+  assert.equal(
+    bookingSchema.parse({ date: "2026-07-25", time: "10:00", name: "Maya", phone: "+44 7700 900123" }).phone,
+    "447700900123"
+  );
 });
 
 test("orders cannot be created before the announced opening", async () => {

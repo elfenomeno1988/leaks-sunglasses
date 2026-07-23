@@ -69,7 +69,7 @@ function renderOrders() {
   currentOrders.forEach((order) => {
     const row = document.createElement("tr");
     row.innerHTML = `<td><strong>${escapeHtml(order.reference)}</strong><small>${date(order.created_at)}</small></td>
-      <td>${escapeHtml(order.customer_name)}<small>+225 ${escapeHtml(order.customer_phone)}</small></td>
+      <td>${escapeHtml(order.customer_name)}<small>+${escapeHtml(order.customer_phone)}</small></td>
       <td>${escapeHtml(order.product_name)} · ${escapeHtml(order.variant_name)}<small>× ${order.quantity}</small></td>
       <td><span class="badge badge-${order.payment_status}">${labels[order.payment_status] || order.payment_status}</span><small>${escapeHtml(order.payment_method)}</small></td>
       <td><strong>${money(order.total_amount)}</strong></td>
@@ -83,7 +83,7 @@ function renderOrders() {
 function openOrder(order) {
   const content = document.querySelector("#dialog-content");
   content.innerHTML = `<p class="kicker">${escapeHtml(order.reference)}</p><h2>${escapeHtml(order.product_name)} — ${escapeHtml(order.variant_name)}</h2>
-    <dl class="dialog-details"><div><dt>Client</dt><dd>${escapeHtml(order.customer_name)}</dd></div><div><dt>Téléphone</dt><dd>+225 ${escapeHtml(order.customer_phone)}</dd></div>
+    <dl class="dialog-details"><div><dt>Client</dt><dd>${escapeHtml(order.customer_name)}</dd></div><div><dt>Téléphone</dt><dd>+${escapeHtml(order.customer_phone)}</dd></div>
     <div><dt>E-mail</dt><dd>${escapeHtml(order.customer_email)}</dd></div><div><dt>Livraison</dt><dd>${escapeHtml(order.delivery_address || "Adresse à confirmer")}</dd></div>
     <div><dt>Paiement</dt><dd>${labels[order.payment_status] || order.payment_status}</dd></div><div><dt>Total</dt><dd>${money(order.total_amount)}</dd></div></dl>
     <form id="order-update" class="dialog-form"><label>Statut<select name="status">${["pending_payment","confirmed","preparing","ready","shipped","delivered","cancelled"].map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${labels[status]}</option>`).join("")}</select></label>

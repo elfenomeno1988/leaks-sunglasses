@@ -353,10 +353,12 @@
   });
 
   const normalizedPhone = () => {
+    const raw = rdv.phone.trim();
     const digits = rdv.phone.replace(/\D/g, "");
-    if (/^225\d{10}$/.test(digits)) return digits;
-    if (/^\d{10}$/.test(digits)) return `225${digits}`;
-    return "";
+    const normalized = raw.startsWith("00")
+      ? digits.slice(2)
+      : (!raw.startsWith("+") && digits.length === 10 ? `225${digits}` : digits);
+    return /^[1-9]\d{7,14}$/.test(normalized) ? normalized : "";
   };
 
   const prettyPhone = () => {
@@ -371,7 +373,7 @@
     const missing = [];
     if (!rdv.date || !rdv.time) missing.push("votre créneau");
     if (rdv.name.length < 2) missing.push("votre nom");
-    if (!normalizedPhone()) missing.push("un numéro WhatsApp ivoirien valide");
+    if (!normalizedPhone()) missing.push("un numéro WhatsApp international valide avec indicatif pays");
     if (missing.length) {
       errBox.hidden = false;
       errBox.textContent = `Il manque ${missing.join(", ")}.`;
