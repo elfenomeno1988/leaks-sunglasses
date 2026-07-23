@@ -21,6 +21,7 @@
   const models = window.LEAKS_MODELS || [];
   const accessories = window.LEAKS_ACCESSORIES || [];
   const money = (v) => `${new Intl.NumberFormat("fr-FR").format(v)} F`;
+  const remainingByVariant = new Map();
 
   /* ── WhatsApp générique ────────────────────────────────────── */
 
@@ -106,6 +107,10 @@
         ? `/checkout.html?product=${encodeURIComponent(item.id)}&variant=${encodeURIComponent(item.variantId)}`
         : waGeneric;
       if (item.purchasable) a.dataset.orderLink = "";
+      if (item.purchasable) {
+        a.dataset.productId = item.id;
+        a.dataset.variantId = item.variantId;
+      }
       if (!item.purchasable) {
         a.target = "_blank";
         a.rel = "noopener";
@@ -121,15 +126,23 @@
 
   /* ── Ouverture des commandes ─────────────────────────────── */
 
-  const orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
+  let orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
 
   function applyOrderGate() {
     const isOpen = Date.now() >= orderOpenTime;
     $$("[data-order-link]").forEach((link) => {
       if (!link.dataset.originalLabel) link.dataset.originalLabel = link.textContent;
-      link.textContent = isOpen ? link.dataset.originalLabel : "Commandes le 24.07.2026";
-      link.classList.toggle("is-locked", !isOpen);
-      link.setAttribute("aria-disabled", String(!isOpen));
+      const remaining = remainingByVariant.get(`${link.dataset.productId}:${link.dataset.variantId}`);
+      const soldOut = remaining === 0;
+      link.textContent = soldOut
+        ? "Épuisé"
+        : !isOpen
+          ? "Commandes le 24.07.2026"
+          : remaining != null
+            ? `${link.dataset.originalLabel} · ${remaining} restant${remaining > 1 ? "s" : ""}`
+            : link.dataset.originalLabel;
+      link.classList.toggle("is-locked", !isOpen || soldOut);
+      link.setAttribute("aria-disabled", String(!isOpen || soldOut));
     });
   }
 
@@ -178,6 +191,8 @@
     $("#m-sku").textContent = m.sku;
     $("#m-color").textContent = currentColor.label;
     $("#m-buy").href = `/checkout.html?product=${encodeURIComponent(m.id)}&variant=${encodeURIComponent(currentColor.variantId)}`;
+    $("#m-buy").dataset.productId = m.id;
+    $("#m-buy").dataset.variantId = currentColor.variantId;
 
     const sw = $("#m-swatches");
     sw.innerHTML = "";
@@ -185,18 +200,45 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "m-swatch" + (c === currentColor ? " is-active" : "");
-      b.innerHTML = `<img src="${c.image}" alt="">${c.label}`;
+      const soldOut = remainingByVariant.get(`${m.id}:${c.variantId}`) === 0;
+      b.disabled = soldOut;
+      b.classList.toggle("is-sold-out", soldOut);
+      b.innerHTML = `<img src="${c.image}" alt="">${c.label}${soldOut ? " · épuisé" : ""}`;
       b.addEventListener("click", () => {
         currentColor = c;
         $("#m-color").textContent = c.label;
         $("#m-buy").href = `/checkout.html?product=${encodeURIComponent(m.id)}&variant=${encodeURIComponent(c.variantId)}`;
+        $("#m-buy").dataset.variantId = c.variantId;
         $$(".m-swatch", sw).forEach((x) => x.classList.toggle("is-active", x === b));
         renderPager();
+        applyOrderGate();
       });
       sw.appendChild(b);
     });
 
     renderPager();
+    applyOrderGate();
+  }
+
+  async function hydrateAvailability() {
+    try {
+      const response = await fetch("/api/catalog", { headers: { accept: "application/json" } });
+      if (!response.ok) return;
+      const catalog = await response.json();
+      const opens = new Date(catalog.orderOpenAt).getTime();
+      if (Number.isFinite(opens)) orderOpenTime = opens;
+      catalog.products?.forEach((product) => {
+        product.variants?.forEach((variant) => {
+          if (variant.remaining != null) {
+            remainingByVariant.set(`${product.id}:${variant.id}`, Number(variant.remaining));
+          }
+        });
+      });
+      if (currentModel) openModel(currentModel.id, currentColor?.variantId);
+      applyOrderGate();
+    } catch {
+      /* Le serveur contrôle encore le stock au dernier geste. */
+    }
   }
 
   /* ── Réserver : trois gestes sur l'API bookings ────────────── */
@@ -310,9 +352,16 @@
     $(`#f-${k}`).addEventListener("input", (e) => { rdv[k] = e.target.value.trim(); });
   });
 
+  const normalizedPhone = () => {
+    const digits = rdv.phone.replace(/\D/g, "");
+    if (/^225\d{10}$/.test(digits)) return digits;
+    if (/^\d{10}$/.test(digits)) return `225${digits}`;
+    return "";
+  };
+
   const prettyPhone = () => {
-    const digits = rdv.phone.replace(/[^\d+]/g, "");
-    return digits.startsWith("+") || digits.startsWith("00") ? digits : `+225 ${rdv.phone}`;
+    const digits = normalizedPhone();
+    return digits ? `+${digits}` : rdv.phone;
   };
 
   const errBox = $("#rdv-err");
@@ -322,7 +371,7 @@
     const missing = [];
     if (!rdv.date || !rdv.time) missing.push("votre créneau");
     if (rdv.name.length < 2) missing.push("votre nom");
-    if (rdv.phone.replace(/\D/g, "").length < 9) missing.push("un numéro WhatsApp valide");
+    if (!normalizedPhone()) missing.push("un numéro WhatsApp ivoirien valide");
     if (missing.length) {
       errBox.hidden = false;
       errBox.textContent = `Il manque ${missing.join(", ")}.`;
@@ -429,6 +478,7 @@
 
   /* ── Démarrage ─────────────────────────────────────────────── */
 
+  hydrateAvailability();
   buildDays();
   route();
 })();

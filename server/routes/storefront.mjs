@@ -25,17 +25,38 @@ export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
   app.get("/api/catalog", async () => {
+    const inventory = await db.query(
+      `select product_id, variant_id, coalesce(sum(quantity), 0)::int as reserved
+       from orders
+       where status <> 'cancelled'
+         and payment_status not in ('failed', 'cancelled', 'refunded')
+       group by product_id, variant_id`
+    );
+    const reservedByVariant = new Map(inventory.rows.map((row) => [
+      `${row.product_id}:${row.variant_id}`,
+      Number(row.reserved) || 0
+    ]));
     const products = catalog.list.map((p) => ({
       ...p,
       variants: p.variants.map((v) => ({
         ...v,
-        remaining: null
+        editionSize: p.tier === "accessory"
+          ? null
+          : Number(v.editionSize || catalog.defaultEditionSize || 2),
+        remaining: p.tier === "accessory"
+          ? null
+          : Math.max(
+            0,
+            Number(v.editionSize || catalog.defaultEditionSize || 2)
+              - (reservedByVariant.get(`${p.id}:${v.id}`) || 0)
+          )
       }))
     }));
 
     return {
       currency: catalog.currency,
       maxOrderQuantity: catalog.maxOrderQuantity || 2,
+      defaultEditionSize: catalog.defaultEditionSize || 2,
       editionLabel: catalog.editionLabel || "1 à 2 exemplaires par coloris",
       dropAt: catalog.dropAt || null,
       orderOpenAt: config.ORDER_OPEN_AT || catalog.orderOpenAt || null,

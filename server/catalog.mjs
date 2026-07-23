@@ -17,5 +17,8 @@ export function resolveLineItem(catalog, productId, variantId, quantity) {
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > maxQuantity) {
     throw Object.assign(new Error(`La quantité doit être comprise entre 1 et ${maxQuantity}.`), { statusCode: 400 });
   }
-  return { product, variant, quantity, subtotal: product.price * quantity };
+  const editionSize = product.tier === "accessory"
+    ? null
+    : Number(variant.editionSize || catalog.defaultEditionSize || 2);
+  return { product, variant, quantity, editionSize, subtotal: product.price * quantity };
 }

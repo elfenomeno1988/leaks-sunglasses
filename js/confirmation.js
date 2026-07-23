@@ -21,7 +21,12 @@ async function refresh() {
     const order = data.order;
     const paid = order.paymentStatus === "paid";
     document.querySelector("#status-title").textContent = paid ? "Paiement confirmé." : order.paymentStatus === "cancelled" ? "Paiement annulé." : "Paiement en attente.";
-    document.querySelector("#status-copy").textContent = paid ? "Votre paire est réservée. Nous préparons maintenant votre commande." : "Le statut se mettra à jour automatiquement dès validation par le service de paiement.";
+    const manual = order.paymentMethod === "whatsapp_wave";
+    document.querySelector("#status-copy").textContent = paid
+      ? "Votre paire est réservée. Nous préparons maintenant votre commande."
+      : manual
+        ? "Le concierge vérifie votre paiement et mettra ce suivi à jour."
+        : "Le statut se mettra à jour automatiquement dès validation par le service de paiement.";
     document.querySelector("#status-product").textContent = `${order.product} × ${order.quantity}`;
     document.querySelector("#status-variant").textContent = order.variant;
     document.querySelector("#status-total").textContent = money(order.totalAmount);

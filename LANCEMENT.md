@@ -1,33 +1,33 @@
-# LEAKS — État réel avant le lancement public
+# LEAKS — état réel du lancement
 
-Le site tourne sur le VPS (http://187.127.232.88:3000). Le numéro WhatsApp
-Business +225 07 18 68 25 37, le jeton serveur permanent et le moyen de
-paiement Meta sont configurés. Voici les derniers verrous externes.
+Le site public est servi sur `https://leaksthebrand.com`. Le catalogue,
+la réservation, le parcours de commande WhatsApp, le suivi privé et le
+tableau d’administration sont hébergés sur le VPS Hostinger.
 
-| # | Point | Conséquence si ignoré | Remède |
-|---|-------|----------------------|--------|
-| 1 | 5 modèles WhatsApp en cours d'examen le 22/07/2026 | Les messages initiés par LEAKS attendent leur activation | Attendre l'examen Meta, annoncé jusqu'à 24 h ; contrôler `Actif` dans le Gestionnaire WhatsApp |
-| 2 | Webhook public non branché | Les réponses et accusés délivré/lu ne remontent pas au tableau de bord | Domaine + HTTPS, puis URL `/api/whatsapp/webhook` chez Meta |
-| 3 | Vérification d'entreprise éligible mais non démarrée | Nom « LEAKS » et augmentation des paliers peuvent rester limités | Meta demande nom, adresse, téléphone, e-mail, site web et éventuellement un document officiel |
-| 4 | App Meta `Non publiée` | Le bouton Publier reste désactivé sans URL de confidentialité | `privacy.html` est prêt ; après HTTPS, saisir `https://domaine/privacy.html` dans Paramètres de l'app → Général |
-| 5 | PayDunya live à confirmer | Le site masque automatiquement Wave/Mobile Money/carte si le mode live ou les clés manquent | `PAYDUNYA_MODE=live`, clés live, puis IPN public HTTPS |
-| 7 | `legal.html` contient `[À COMPLÉTER]` | Mentions légales incomplètes | Fournir raison sociale, RCCM et politique de retour réelles |
+## Prêt côté site
 
-## Résolu le 22/07/2026
-- La version `79b66b4` est déployée sur le VPS Hostinger.
-- Une sauvegarde PostgreSQL privée a été créée avant la mise à jour.
-- Les conteneurs application et base de données sont démarrés et sains.
-- Le catalogue public expose les sept modèles et la politique de confidentialité répond en HTTP 200.
-- En l'absence de clés PayDunya live, le checkout masque automatiquement les
-  paiements en ligne et conserve uniquement le parcours WhatsApp/Wave.
+- Domaine et HTTPS actifs.
+- Catalogue synchronisé : 12 montures, 2 accessoires, prix et images vérifiés.
+- Commandes ouvertes à partir du 24.07.2026.
+- Deux exemplaires maximum par coloris, avec stock bloqué côté serveur contre
+  les achats simultanés.
+- Quantité maximale de deux articles par commande.
+- Livraison à Abidjan : 1 000 F CFA, offerte pour LEAKS Exclusive.
+- Réservation sur créneaux uniques, numéro ivoirien normalisé et repli WhatsApp.
+- Pages confidentialité et mentions légales publiques, sans texte provisoire.
+- Affichage vérifié sous Chromium, WebKit/Safari et mobile.
 
-## Ne JAMAIS faire
-- Ne pas connecter le +225 01 73 89 14 04 (WhatsApp du concierge) à l'API Cloud :
-  un numéro API est déconnecté de l'application WhatsApp — il resterait muet
-  dans l'app. L'API a besoin de SON propre numéro.
+## Dépendances externes encore à surveiller
 
-## L'ordre conseillé
-1. Domaine + HTTPS (débloque webhook et IPN)
-2. Vérifier l'activation des cinq modèles et le statut de l'app Meta
-3. PayDunya live
-4. Mentions légales et vérification d'entreprise
+| Point | État constaté | Effet |
+|---|---|---|
+| Modèles WhatsApp Meta | Les cinq noms sont configurés ; leur approbation finale reste pilotée par Meta | Tant qu'un modèle n'est pas `APPROVED`, le site ouvre automatiquement une carte WhatsApp préremplie au lieu de prétendre que le message a été livré |
+| Signature du webhook Meta | L'URL publique existe ; `WHATSAPP_APP_SECRET` doit être présent en production | Sans secret, les événements entrants signés ne sont pas activés |
+| PayDunya live | Non activé sur la dernière vérification publique | Le site masque Wave/Mobile Money/carte et conserve le parcours WhatsApp |
+| Vérification de l'entreprise Meta | Décision externe à Meta Business | Peut limiter le nom affiché et les paliers de messagerie |
+
+## Règle de sécurité du numéro
+
+Ne pas connecter le +225 01 73 89 14 04, utilisé par le concierge dans
+l'application WhatsApp, à l'API Cloud. Le numéro API Business reste séparé
+afin que le numéro personnel continue de recevoir les messages dans l'app.

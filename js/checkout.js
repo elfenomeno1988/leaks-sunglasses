@@ -9,6 +9,7 @@ let deliveryFee = 1000;
 let freeDeliveryTiers = ["exclusive"];
 let paymentMethods = ["whatsapp_wave"];
 let orderOpenAt = "2026-07-24T00:00:00Z";
+let maxOrderQuantity = 2;
 
 const money = (value, suffix = " F CFA") => new Intl.NumberFormat("fr-FR").format(value) + suffix;
 const $ = (selector) => document.querySelector(selector);
@@ -17,7 +18,7 @@ async function api(url, options) {
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(data.error || "Une erreur est survenue.");
+    const error = new Error(data.message || data.error || "Une erreur est survenue.");
     error.fields = data.fields;
     throw error;
   }
@@ -29,6 +30,7 @@ async function initialize() {
     const catalog = await api("/api/catalog");
     deliveryFee = catalog.deliveryFees.abidjan_delivery;
     orderOpenAt = catalog.orderOpenAt || orderOpenAt;
+    maxOrderQuantity = Number(catalog.maxOrderQuantity) || 2;
     freeDeliveryTiers = Array.isArray(catalog.freeDeliveryTiers)
       ? catalog.freeDeliveryTiers : ["exclusive"];
     paymentMethods = Array.isArray(catalog.paymentMethods) && catalog.paymentMethods.length
@@ -66,6 +68,7 @@ async function initialize() {
     select.value = requested && requested.remaining !== 0 ? requested.id : firstAvailable.id;
     $("#product-name").textContent = `${product.name.startsWith("LEAKS") ? product.name : `LEAKS — ${product.name}`} · ${product.sku}`;
     $("#product-description").textContent = product.description;
+    updateQuantityAvailability();
     updateSummary();
     updateOpeningState();
   } catch (error) {
@@ -77,14 +80,20 @@ async function initialize() {
 function updateOpeningState() {
   const opens = new Date(orderOpenAt).getTime();
   const isOpen = Number.isFinite(opens) && Date.now() >= opens;
-  $("#checkout-opening").textContent = isOpen
-    ? "Les commandes sont ouvertes."
-    : "Commandes ouvertes à partir du 24.07.2026.";
-  submit.disabled = !isOpen;
+  const variant = selectedVariant();
+  const soldOut = variant?.remaining === 0;
+  $("#checkout-opening").textContent = soldOut
+    ? "Ce coloris est épuisé — choisissez-en un autre."
+    : isOpen
+      ? (variant?.remaining == null
+        ? "Les commandes sont ouvertes."
+        : `${variant.remaining} exemplaire${variant.remaining > 1 ? "s" : ""} encore disponible${variant.remaining > 1 ? "s" : ""} dans ce coloris.`)
+      : "Commandes ouvertes à partir du 24.07.2026.";
+  submit.disabled = !isOpen || soldOut;
   if (!isOpen) {
     submit.title = "Les commandes ouvrent le 24.07.2026.";
     setTimeout(updateOpeningState, Math.min(opens - Date.now() + 1000, 2_147_000_000));
-  } else {
+  } else if (!soldOut) {
     submit.removeAttribute("title");
   }
 }
@@ -93,9 +102,26 @@ function selectedVariant() {
   return product?.variants.find((variant) => variant.id === $("#variant").value);
 }
 
+function updateQuantityAvailability() {
+  const variant = selectedVariant();
+  if (!variant) return;
+  const available = variant.remaining == null
+    ? maxOrderQuantity
+    : Math.min(maxOrderQuantity, variant.remaining);
+  const quantity = $("#quantity");
+  [...quantity.options].forEach((option) => {
+    option.disabled = Number(option.value) > available;
+  });
+  if (Number(quantity.value) > available) {
+    const fallback = [...quantity.options].filter((option) => !option.disabled).at(-1);
+    if (fallback) quantity.value = fallback.value;
+  }
+}
+
 function updateSummary() {
   if (!product) return;
   const variant = selectedVariant();
+  updateQuantityAvailability();
   const quantity = Number($("#quantity").value);
   const isDelivery = true;
   const freeDelivery = isDelivery && freeDeliveryTiers.includes(product.tier);
@@ -126,7 +152,10 @@ function showError(message) {
   errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-form.addEventListener("change", updateSummary);
+form.addEventListener("change", () => {
+  updateSummary();
+  updateOpeningState();
+});
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorBox.hidden = true;
@@ -149,9 +178,9 @@ form.addEventListener("submit", async (event) => {
     location.href = result.redirectUrl;
   } catch (error) {
     showError(error.message);
-    submit.disabled = false;
     submit.innerHTML = original;
     updateSummary();
+    updateOpeningState();
   }
 });
 

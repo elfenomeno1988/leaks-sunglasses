@@ -8,7 +8,9 @@ const bookingSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide."),
   time: z.enum(SLOT_TIMES, { message: "Créneau invalide." }),
   name: z.string().trim().min(2, "Nom trop court.").max(80),
-  phone: z.string().trim().regex(/^\+?[0-9][0-9 .-]{7,19}$/, "Téléphone invalide."),
+  phone: z.string().trim().transform((value) => value.replace(/\D/g, ""))
+    .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro WhatsApp ivoirien invalide.")
+    .transform((value) => value.startsWith("225") ? value : `225${value}`),
   note: z.string().trim().max(500).optional().default(""),
   models: z.array(z.string().trim().min(1).max(40)).max(12).optional().default([])
 });

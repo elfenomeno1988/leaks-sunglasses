@@ -39,6 +39,7 @@ test("catalogue resolves a server-priced variant", async () => {
   const line = resolveLineItem(catalog, "genesio", "deep-brown", 2);
   assert.equal(line.product.price, 24900);
   assert.equal(line.variant.name, "Deep Brown");
+  assert.equal(line.editionSize, 2);
   assert.equal(line.subtotal, 49800);
   assert.throws(() => resolveLineItem(catalog, "genesio", "inconnu", 1));
   assert.throws(() => resolveLineItem(catalog, "genesio", "deep-brown", 3));
@@ -86,7 +87,7 @@ test("browser and server catalogues stay aligned and reference real assets", asy
 
 test("checkout validates Côte d'Ivoire contact and delivery address", () => {
   const base = { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" };
-  assert.equal(checkoutSchema.parse(base).customerPhone, "0700000000");
+  assert.equal(checkoutSchema.parse(base).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+225 07 00 00 00 00" }).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.safeParse({ ...base, deliveryMethod: "abidjan_delivery", deliveryAddress: "court" }).success, false);
 });
@@ -268,7 +269,7 @@ test("Meta webhook signatures are verified before processing", () => {
   assert.equal(verifyMetaSignature(secret, raw, valid), true);
 });
 
-test("order creation persists server totals before creating the payment invoice", async () => {
+test("order creation persists server totals and edition stock before creating the payment invoice", async () => {
   const catalog = await loadCatalog();
   const calls = [];
   const db = {
@@ -285,7 +286,29 @@ test("order creation persists server totals before creating the payment invoice"
   const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
   assert.ok(insertCall, "insert into orders attendu");
   assert.equal(insertCall.params[13], 25900);
-  assert.equal(insertCall.params[19], null); // aucun numéro de série ou quota par coloris
+  assert.equal(insertCall.params[19], 2);
+});
+
+test("a sold-out color cannot create another order", async () => {
+  const catalog = await loadCatalog();
+  const db = {
+    async query(sql) {
+      assert.match(sql, /inventory_lock/);
+      return { rows: [] };
+    }
+  };
+  await assert.rejects(
+    createOrder({
+      db, catalog, config, paydunya: {},
+      input: {
+        productId: "genesio", variantId: "deep-brown", quantity: 1,
+        customerName: "Awa Kouassi", customerEmail: "awa@example.com",
+        customerPhone: "0700000000", deliveryMethod: "abidjan_delivery",
+        deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "whatsapp_wave"
+      }
+    }),
+    (error) => error.statusCode === 409 && /épuisé/.test(error.message)
+  );
 });
 
 test("LEAKS Exclusive delivery in Abidjan is free", async () => {
@@ -328,7 +351,9 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.equal(catalogResponse.statusCode, 200);
   assert.equal(catalogResponse.json().products.length, 14);
   assert.equal(catalogResponse.json().maxOrderQuantity, 2);
+  assert.equal(catalogResponse.json().defaultEditionSize, 2);
   assert.equal(catalogResponse.json().editionLabel, "1 à 2 exemplaires par coloris");
+  assert.equal(catalogResponse.json().products[0].variants[0].remaining, 2);
   assert.equal(catalogResponse.json().orderOpenAt, "2020-01-01T00:00:00Z");
   assert.deepEqual(catalogResponse.json().freeDeliveryTiers, ["exclusive"]);
   assert.equal(catalogResponse.json().deliveryFees.abidjan_delivery, 1000);

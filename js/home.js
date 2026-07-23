@@ -41,7 +41,7 @@ function renderCatalog() {
             <span class="card-row"><h3><span class="idx">${String(position).padStart(2, "0")}</span> LEAKS — ${model.name}</h3><span class="tag">${model.sku}</span></span>
             <span class="card-sub"><span>${colorCount}</span><span class="price">${money(model.price)}</span></span>
           </a>
-          <a class="card-buy" data-order-link href="/checkout.html?product=${encodeURIComponent(model.id)}&amp;variant=${encodeURIComponent(first.variantId)}">Acheter directement</a>
+          <a class="card-buy" data-order-link data-product-id="${model.id}" data-variant-id="${first.variantId}" href="/checkout.html?product=${encodeURIComponent(model.id)}&amp;variant=${encodeURIComponent(first.variantId)}">Acheter directement</a>
         </article>`;
     }).join("");
     return `
@@ -60,7 +60,7 @@ function renderAccessories() {
   if (!root) return;
   root.innerHTML = accessories.map((item) => {
     const action = item.purchasable
-      ? `<a class="card-buy" data-order-link href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
+      ? `<a class="card-buy" data-order-link data-product-id="${item.id}" data-variant-id="${item.variantId}" href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
       : `<a class="card-buy" data-wa href="#" target="_blank" rel="noopener">Écrire au concierge</a>`;
     const visual = item.image
       ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
@@ -78,16 +78,53 @@ function renderAccessories() {
 renderCatalog();
 renderAccessories();
 
-const orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
+let orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
 
 function applyOrderGate() {
   const isOpen = Date.now() >= orderOpenTime;
   $$("[data-order-link]").forEach((link) => {
     if (!link.dataset.originalLabel) link.dataset.originalLabel = link.textContent;
-    link.textContent = isOpen ? link.dataset.originalLabel : "Commandes le 24.07.2026";
-    link.classList.toggle("is-locked", !isOpen);
-    link.setAttribute("aria-disabled", String(!isOpen));
+    const remaining = link.dataset.remaining === undefined || link.dataset.remaining === ""
+      ? null : Number(link.dataset.remaining);
+    const soldOut = remaining === 0;
+    link.textContent = soldOut
+      ? "Épuisé"
+      : !isOpen
+        ? "Commandes le 24.07.2026"
+        : remaining != null && remaining <= 2
+          ? `${link.dataset.originalLabel} · ${remaining} restant${remaining > 1 ? "s" : ""}`
+          : link.dataset.originalLabel;
+    link.classList.toggle("is-locked", !isOpen || soldOut);
+    link.classList.toggle("is-sold-out", soldOut);
+    link.setAttribute("aria-disabled", String(!isOpen || soldOut));
   });
+}
+
+async function hydrateAvailability() {
+  try {
+    const response = await fetch("/api/catalog", { headers: { accept: "application/json" } });
+    if (!response.ok) return;
+    const catalog = await response.json();
+    const opens = new Date(catalog.orderOpenAt).getTime();
+    if (Number.isFinite(opens)) orderOpenTime = opens;
+    $$("[data-order-link]").forEach((link) => {
+      const product = catalog.products?.find((entry) => entry.id === link.dataset.productId);
+      if (!product) return;
+      let variant = product.variants?.find((entry) => entry.id === link.dataset.variantId);
+      if (variant?.remaining === 0) {
+        const replacement = product.variants.find((entry) => entry.remaining !== 0);
+        if (replacement) {
+          variant = replacement;
+          link.dataset.variantId = replacement.id;
+          link.href = `/checkout.html?product=${encodeURIComponent(product.id)}&variant=${encodeURIComponent(replacement.id)}`;
+        }
+      }
+      link.dataset.remaining = variant?.remaining == null ? "" : String(variant.remaining);
+    });
+    applyOrderGate();
+  } catch {
+    /* Le serveur valide aussi le stock au dernier geste. */
+  }
 }
 
 document.addEventListener("click", (event) => {
@@ -98,6 +135,7 @@ document.addEventListener("click", (event) => {
 });
 
 applyOrderGate();
+hydrateAvailability();
 if (Date.now() < orderOpenTime) {
   setTimeout(applyOrderGate, Math.min(orderOpenTime - Date.now() + 1000, 2_147_000_000));
 }

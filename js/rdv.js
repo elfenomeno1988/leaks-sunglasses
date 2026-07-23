@@ -169,16 +169,23 @@
     });
   });
 
+  function normalizedPhone() {
+    const digits = state.phone.replace(/\D/g, "");
+    if (/^225\d{10}$/.test(digits)) return digits;
+    if (/^\d{10}$/.test(digits)) return `225${digits}`;
+    return "";
+  }
+
   function prettyPhone() {
-    const digits = state.phone.replace(/[^\d+]/g, "");
-    return digits.startsWith("+") || digits.startsWith("00") ? digits : `+225 ${state.phone}`;
+    const digits = normalizedPhone();
+    return digits ? `+${digits}` : state.phone;
   }
 
   function validate() {
     const missing = [];
     if (!state.date || !state.time) missing.push("votre créneau");
     if (state.name.length < 2) missing.push("votre nom");
-    if (state.phone.replace(/\D/g, "").length < 9) missing.push("un numéro WhatsApp valide");
+    if (!normalizedPhone()) missing.push("un numéro WhatsApp ivoirien valide");
     return missing;
   }
 

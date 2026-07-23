@@ -21,6 +21,8 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 
 const money = (value) => `${new Intl.NumberFormat("fr-FR").format(value)} F CFA`;
 const waHref = (message) => `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
+const remainingByVariant = new Map();
+let orderOpenTime = new Date("2026-07-24T00:00:00Z").getTime();
 
 const modelMap = window.LEAKS_MODEL_MAP || Object.fromEntries((window.LEAKS_MODELS || []).map((model) => [model.id, model]));
 const defaultModel = (window.LEAKS_MODELS || []).find((model) => model.colors.length > 1) || window.LEAKS_MODELS?.[0];
@@ -73,6 +75,27 @@ function updateLocation() {
   window.history.replaceState({}, "", url);
 }
 
+function currentRemaining() {
+  return remainingByVariant.get(`${currentModel?.id}:${currentVariant?.variantId}`);
+}
+
+function updateBuyState() {
+  if (!buyNode || !currentModel || !currentVariant) return;
+  if (!buyNode.dataset.originalLabel) buyNode.dataset.originalLabel = buyNode.textContent;
+  const remaining = currentRemaining();
+  const soldOut = remaining === 0;
+  const isOpen = Date.now() >= orderOpenTime;
+  buyNode.textContent = soldOut
+    ? "Coloris épuisé"
+    : !isOpen
+      ? "Commandes le 24.07.2026"
+      : remaining != null
+        ? `Commander · ${remaining} restant${remaining > 1 ? "s" : ""}`
+        : buyNode.dataset.originalLabel;
+  buyNode.classList.toggle("is-locked", !isOpen || soldOut);
+  buyNode.setAttribute("aria-disabled", String(!isOpen || soldOut));
+}
+
 function renderViews() {
   const list = variantViews(currentVariant);
   const view = list[currentViewIndex] || list[0];
@@ -118,17 +141,19 @@ function render() {
   if (tierNode) tierNode.textContent = currentModel.tierLabel || "LEAKS";
   priceNode.textContent = money(currentModel.price);
   buyNode.href = `/checkout.html?product=${encodeURIComponent(currentModel.id)}&variant=${encodeURIComponent(currentVariant.variantId)}`;
+  updateBuyState();
   updateWhatsAppLinks();
   updateLocation();
 
   swatchesNode.innerHTML = currentModel.colors.map((color) => {
     const active = color.variantId === currentVariant.variantId ? " is-active" : "";
+    const soldOut = remainingByVariant.get(`${currentModel.id}:${color.variantId}`) === 0;
     return `
-      <button type="button" class="g-swatch${active}" data-variant="${color.variantId}" aria-pressed="${color.variantId === currentVariant.variantId}">
+      <button type="button" class="g-swatch${active}${soldOut ? " is-sold-out" : ""}" data-variant="${color.variantId}" aria-pressed="${color.variantId === currentVariant.variantId}" ${soldOut ? "disabled" : ""}>
         <img src="${color.image}" alt="">
         <span>
           <strong>${color.label}</strong>
-          <em>${variantViews(color).length} vue${variantViews(color).length > 1 ? "s" : ""}</em>
+          <em>${soldOut ? "Épuisé" : `${variantViews(color).length} vue${variantViews(color).length > 1 ? "s" : ""}`}</em>
         </span>
       </button>
     `;
@@ -156,4 +181,33 @@ if (currentModel && currentVariant) {
   render();
 }
 
+buyNode?.addEventListener("click", (event) => {
+  if (buyNode.getAttribute("aria-disabled") !== "true") return;
+  event.preventDefault();
+});
+
+async function hydrateAvailability() {
+  try {
+    const response = await fetch("/api/catalog", { headers: { accept: "application/json" } });
+    if (!response.ok) return;
+    const catalog = await response.json();
+    const opens = new Date(catalog.orderOpenAt).getTime();
+    if (Number.isFinite(opens)) orderOpenTime = opens;
+    catalog.products?.forEach((product) => {
+      product.variants?.forEach((variant) => {
+        if (variant.remaining != null) {
+          remainingByVariant.set(`${product.id}:${variant.id}`, Number(variant.remaining));
+        }
+      });
+    });
+    render();
+    if (Date.now() < orderOpenTime) {
+      setTimeout(updateBuyState, Math.min(orderOpenTime - Date.now() + 1000, 2_147_000_000));
+    }
+  } catch {
+    /* Le contrôle serveur reste l'autorité au moment de la commande. */
+  }
+}
+
+hydrateAvailability();
 setupReveals();

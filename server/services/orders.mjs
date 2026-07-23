@@ -9,7 +9,8 @@ export const checkoutSchema = z.object({
   customerName: z.string().trim().min(2).max(120),
   customerEmail: z.string().trim().email().max(200),
   customerPhone: z.string().trim().transform((value) => value.replace(/\D/g, ""))
-    .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro ivoirien invalide."),
+    .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro ivoirien invalide.")
+    .transform((value) => value.startsWith("225") ? value : `225${value}`),
   deliveryMethod: z.literal("abidjan_delivery"),
   deliveryAddress: z.string().trim().max(300).optional().default(""),
   customerNote: z.string().trim().max(500).optional().default(""),
@@ -55,23 +56,48 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
     );
   }
 
+  /* Le verrou transactionnel est pris dans la même requête que l'insertion.
+     Deux derniers achats simultanés du même coloris ne peuvent donc pas
+     dépasser l'édition annoncée. Les accessoires restent sans quota. */
   const inserted = await db.query(
-    `insert into orders (
+    `with inventory_lock as materialized (
+      select pg_advisory_xact_lock(hashtextextended($5::text || ':' || $8::text, 0))
+    ),
+    availability as materialized (
+      select $20::integer as edition_size,
+        coalesce(sum(o.quantity) filter (
+          where o.status <> 'cancelled'
+            and o.payment_status not in ('failed', 'cancelled', 'refunded')
+        ), 0)::integer as reserved
+      from inventory_lock
+      left join orders o on o.product_id=$5 and o.variant_id=$8
+      group by $20::integer
+    )
+    insert into orders (
       reference, tracking_token, payment_method, payment_provider,
       product_id, product_sku, product_name, variant_id, variant_name,
       unit_price, quantity, delivery_method, delivery_fee, total_amount,
       customer_name, customer_email, customer_phone, delivery_address, customer_note, edition_size
-    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+    )
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20
+    from availability
+    where edition_size is null or reserved + $11 <= edition_size
     returning *`,
     [
       reference, trackingToken, values.paymentMethod, manual ? "manual" : "paydunya",
       line.product.id, line.product.sku, line.product.name, line.variant.id, line.variant.name,
       line.product.price, line.quantity, values.deliveryMethod, deliveryFee, totalAmount,
       values.customerName, values.customerEmail, phone, values.deliveryAddress || null, values.customerNote || null,
-      null
+      line.editionSize
     ]
   );
   const order = inserted.rows[0];
+  if (!order) {
+    throw Object.assign(
+      new Error("Ce coloris est épuisé ou la quantité demandée n'est plus disponible."),
+      { statusCode: 409 }
+    );
+  }
 
   if (manual) {
     const message = [
@@ -144,6 +170,7 @@ export function publicOrder(order) {
     reference: order.reference,
     status: order.status,
     paymentStatus: order.payment_status,
+    paymentMethod: order.payment_method,
     product: `${order.product_name} ${order.product_sku}`,
     variant: order.variant_name,
     quantity: order.quantity,

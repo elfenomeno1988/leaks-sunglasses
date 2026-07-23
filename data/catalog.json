@@ -1,6 +1,7 @@
 {
   "currency": "XOF",
   "maxOrderQuantity": 2,
+  "defaultEditionSize": 2,
   "editionLabel": "1 à 2 exemplaires par coloris",
   "dropAt": "2026-07-25T20:00:00Z",
   "orderOpenAt": "2026-07-24T00:00:00Z",

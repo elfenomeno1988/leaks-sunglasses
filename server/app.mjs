@@ -88,7 +88,7 @@ export async function buildApp(overrides = {}) {
 
   app.get("/sitemap.xml", async (_request, reply) => {
     const pages = [
-      "/", "/campagne.html", "/manifeste.html", "/m.html", "/privacy.html",
+      "/", "/campagne.html", "/manifeste.html", "/legal.html", "/privacy.html",
       ...catalog.list.map((p) => `/gallery.html?product=${p.id}`)
     ];
     const urls = pages.map((p) =>
