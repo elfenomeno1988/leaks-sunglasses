@@ -53,7 +53,11 @@ function assertBookableDate(iso) {
 const makeReference = () => `LK-RDV-${randomBytes(2).toString("hex").toUpperCase()}`;
 
 export async function createBooking({ db, catalog, input }) {
-  const values = bookingSchema.parse(input ?? {});
+  const parsed = bookingSchema.safeParse(input ?? {});
+  if (!parsed.success) {
+    throw new BookingError(parsed.error.issues[0]?.message || "Informations de rendez-vous invalides.");
+  }
+  const values = parsed.data;
   assertBookableDate(values.date);
 
   /* Anti-abus : deux rendez-vous à venir maximum par numéro. */
