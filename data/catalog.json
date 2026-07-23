@@ -2,7 +2,7 @@
   "currency": "XOF",
   "maxOrderQuantity": 2,
   "defaultEditionSize": 2,
-  "editionLabel": "1 à 2 exemplaires par coloris",
+  "editionLabel": "50 exemplaires au total",
   "dropAt": "2026-07-25T20:00:00Z",
   "orderOpenAt": "2026-07-24T00:00:00Z",
   "products": [
@@ -196,7 +196,7 @@
       "price": 14900,
       "description": "Coffret de voyage premium en similicuir noir, conçu pour protéger et transporter vos lunettes.",
       "variants": [
-        { "id": "black", "name": "Black", "image": "/assets/img/accessories/travel-case/black/hero.webp" }
+        { "id": "black", "name": "Black", "image": "/assets/img/accessories/travel-case/black/hero-centered-white.webp" }
       ]
     }
   ]

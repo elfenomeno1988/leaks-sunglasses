@@ -153,9 +153,9 @@
     {
       id: "eyewear-case", name: "LEAKS Travel Case", sku: "ACC-02", price: 14900,
       description: "Coffret de voyage premium en similicuir noir pour protéger et transporter vos lunettes.",
-      image: "/assets/img/accessories/travel-case/black/hero.webp",
+      image: "/assets/img/accessories/travel-case/black/hero-centered-white.webp",
       views: [
-        "/assets/img/accessories/travel-case/black/hero.webp",
+        "/assets/img/accessories/travel-case/black/hero-centered-white.webp",
         "/assets/img/accessories/travel-case/black/standing.webp",
         "/assets/img/accessories/travel-case/black/logo-detail.webp",
         "/assets/img/accessories/travel-case/black/clasp-detail.webp"

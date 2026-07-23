@@ -57,7 +57,7 @@ export async function storefrontRoutes(app, deps) {
       currency: catalog.currency,
       maxOrderQuantity: catalog.maxOrderQuantity || 2,
       defaultEditionSize: catalog.defaultEditionSize || 2,
-      editionLabel: catalog.editionLabel || "1 à 2 exemplaires par coloris",
+      editionLabel: catalog.editionLabel || "50 exemplaires au total",
       dropAt: catalog.dropAt || null,
       orderOpenAt: config.ORDER_OPEN_AT || catalog.orderOpenAt || null,
       deliveryFees: { abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },

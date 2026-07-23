@@ -352,7 +352,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.equal(catalogResponse.json().products.length, 14);
   assert.equal(catalogResponse.json().maxOrderQuantity, 2);
   assert.equal(catalogResponse.json().defaultEditionSize, 2);
-  assert.equal(catalogResponse.json().editionLabel, "1 à 2 exemplaires par coloris");
+  assert.equal(catalogResponse.json().editionLabel, "50 exemplaires au total");
   assert.equal(catalogResponse.json().products[0].variants[0].remaining, 2);
   assert.equal(catalogResponse.json().orderOpenAt, "2020-01-01T00:00:00Z");
   assert.deepEqual(catalogResponse.json().freeDeliveryTiers, ["exclusive"]);
