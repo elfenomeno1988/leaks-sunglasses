@@ -137,7 +137,7 @@
       link.textContent = soldOut
         ? "Épuisé"
         : !isOpen
-          ? "Commandes le 24.07.2026"
+          ? "Bientôt disponible"
           : remaining != null
             ? `${link.dataset.originalLabel} · ${remaining} restant${remaining > 1 ? "s" : ""}`
             : link.dataset.originalLabel;

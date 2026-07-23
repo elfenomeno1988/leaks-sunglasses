@@ -213,15 +213,6 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .drop-date-label strong { font-weight: 500; }
 
-.order-open-label {
-  margin-top: 6px;
-  color: var(--mute);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-
 .count {
   display: flex;
   gap: 22px;

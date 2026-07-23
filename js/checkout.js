@@ -88,10 +88,10 @@ function updateOpeningState() {
       ? (variant?.remaining == null
         ? "Les commandes sont ouvertes."
         : `${variant.remaining} exemplaire${variant.remaining > 1 ? "s" : ""} encore disponible${variant.remaining > 1 ? "s" : ""} dans ce coloris.`)
-      : "Commandes ouvertes à partir du 24.07.2026.";
+      : "Bientôt disponible.";
   submit.disabled = !isOpen || soldOut;
   if (!isOpen) {
-    submit.title = "Les commandes ouvrent le 24.07.2026.";
+    submit.title = "Bientôt disponible.";
     setTimeout(updateOpeningState, Math.min(opens - Date.now() + 1000, 2_147_000_000));
   } else if (!soldOut) {
     submit.removeAttribute("title");
@@ -160,7 +160,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorBox.hidden = true;
   if (Date.now() < new Date(orderOpenAt).getTime()) {
-    showError("Les commandes ouvrent le 24.07.2026.");
+    showError("Bientôt disponible.");
     return;
   }
   if (!form.reportValidity() || !product) return;

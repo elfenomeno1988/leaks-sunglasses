@@ -90,7 +90,7 @@ function applyOrderGate() {
     link.textContent = soldOut
       ? "Épuisé"
       : !isOpen
-        ? "Commandes le 24.07.2026"
+        ? "Bientôt disponible"
         : remaining != null && remaining <= 2
           ? `${link.dataset.originalLabel} · ${remaining} restant${remaining > 1 ? "s" : ""}`
           : link.dataset.originalLabel;
@@ -131,7 +131,6 @@ document.addEventListener("click", (event) => {
   const link = event.target.closest("[data-order-link].is-locked");
   if (!link) return;
   event.preventDefault();
-  $(".order-opening")?.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
 applyOrderGate();

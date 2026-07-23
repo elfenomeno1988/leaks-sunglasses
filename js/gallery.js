@@ -88,7 +88,7 @@ function updateBuyState() {
   buyNode.textContent = soldOut
     ? "Coloris épuisé"
     : !isOpen
-      ? "Commandes le 24.07.2026"
+      ? "Bientôt disponible"
       : remaining != null
         ? `Commander · ${remaining} restant${remaining > 1 ? "s" : ""}`
         : buyNode.dataset.originalLabel;
