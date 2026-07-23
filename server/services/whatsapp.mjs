@@ -191,6 +191,15 @@ export function createWhatsAppNotifier(config, logger = console) {
 
   const sendText = (to, body) => post({ to, type: "text", text: { preview_url: false, body } });
 
+  /* Meta refuse les retours à la ligne, tabulations et longues suites
+     d'espaces dans une variable de modèle. Les alertes internes sont
+     naturellement multi-lignes : on les compacte au dernier moment afin
+     que les messages déjà présents dans l'outbox soient eux aussi réparés. */
+  const templateParameter = (value) => String(value)
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
   const sendTemplate = (to, name, parameters = []) => post({
     to,
     type: "template",
@@ -200,7 +209,7 @@ export function createWhatsAppNotifier(config, logger = console) {
       ...(parameters.length ? {
         components: [{
           type: "body",
-          parameters: parameters.map((text) => ({ type: "text", text: String(text) }))
+          parameters: parameters.map((text) => ({ type: "text", text: templateParameter(text) }))
         }]
       } : {})
     }

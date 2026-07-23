@@ -235,6 +235,38 @@ test("WhatsApp Cloud uses the configured Graph version and template payload", as
   }
 });
 
+test("WhatsApp template parameters are safe for Meta, including queued multiline alerts", async () => {
+  const originalFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (url, options) => {
+    request = { url: String(url), options };
+    return new Response(JSON.stringify({ messages: [{ id: "wamid.alert" }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  try {
+    const whatsapp = createWhatsAppNotifier({
+      ...config,
+      WHATSAPP_CLOUD_TOKEN: "server-token",
+      WHATSAPP_PHONE_NUMBER_ID: "1239914522534675",
+      WHATSAPP_TEMPLATE_LANG: "fr"
+    });
+    await whatsapp.sendTemplate("2250173891404", "leaks_alerte_concierge", [
+      "Nouveau rendez-vous",
+      "LK-RDV-TEST",
+      "Client — 07 00 00 00 00\nDate : vendredi\t  10:00"
+    ]);
+    const payload = JSON.parse(request.options.body);
+    assert.equal(
+      payload.template.components[0].parameters[2].text,
+      "Client — 07 00 00 00 00 Date : vendredi 10:00"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("WhatsApp automation activates only after Meta approves the French template", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
