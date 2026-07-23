@@ -232,8 +232,7 @@
           </section>
 
           <section class="xp-panel" data-panel="done" aria-label="Confirmation WhatsApp">
-            <p class="xp-lead" id="xp-done-lead">Votre créneau est retenu.
-            <small>Un dernier geste : envoyez votre carte au concierge — il vous répond sous 15 minutes.</small></p>
+            <p class="xp-lead" id="xp-done-lead">Votre créneau est retenu.</p>
 
             <div class="wa-preview" aria-label="Aperçu du message WhatsApp">
               <div class="wa-top">
@@ -246,11 +245,12 @@
             </div>
 
             <div class="xp-actions xp-actions-done">
-              <a class="btn btn-ink" id="wa-send" href="#" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
+              <button type="button" class="btn btn-ink" id="wa-send">Confirmer le RDV</button>
               <a class="btn btn-ghost" id="ics-dl" href="#" download="leaks-essayage.ics">Ajouter au calendrier</a>
             </div>
-            <p class="form-microcopy">Le message part tel quel, votre référence fait foi.
-            Besoin de changer ? Répondez simplement au concierge.</p>
+            <p class="form-microcopy" id="xp-confirm-status" role="status">
+              Confirmez votre présence. Le concierge sera prévenu automatiquement.
+            </p>
           </section>
         </div>
 
@@ -337,6 +337,6 @@
 
   <script src="js/catalog-data.js?v=11"></script>
   <script src="js/home.js?v=13"></script>
-  <script src="js/rdv.js?v=10"></script>
+  <script src="js/rdv.js?v=11"></script>
 </body>
 </html>

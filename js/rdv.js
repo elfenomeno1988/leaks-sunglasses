@@ -17,6 +17,7 @@
     date: "", time: "",
     name: "", phone: "", note: "",
     reference: "", offline: false,
+    confirmationToken: "", confirmed: false,
     delivery: "handoff", handoffText: ""
   };
 
@@ -230,10 +231,12 @@
       }
       if (!res.ok) throw new Error(data.message || data.error || "");
       state.reference = data.booking.reference;
+      state.confirmationToken = data.booking.confirmationToken || "";
       state.delivery = data.whatsapp?.delivery || "handoff";
       state.handoffText = data.whatsapp?.handoffText || "";
     } catch {
       state.reference = ""; // mode dégradé : la demande part sur WhatsApp sans référence
+      state.confirmationToken = "";
       state.offline = true;
       state.delivery = "handoff";
       state.handoffText = "";
@@ -249,7 +252,7 @@
     /* En mode automatique, le worker Meta prend la main sans demander un
        second geste au client. Le lien prérempli ne sert qu'au vrai repli. */
     if (state.delivery === "handoff") {
-      window.open($("#wa-send").href, "_blank", "noopener");
+      window.open($("#wa-send").dataset.handoff, "_blank", "noopener");
     }
   });
 
@@ -297,23 +300,54 @@
     const automatic = sent || queued;
     const msg = waMessage();
     $("#wa-bubble").textContent = automatic ? customerEcho() : msg;
-    $("#wa-send").textContent = automatic ? "Ouvrir WhatsApp" : "Envoyer sur WhatsApp";
-    $("#wa-send").href = automatic
-      ? `https://wa.me/${CONFIG.whatsappNumber}`
-      : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+    $("#wa-send").textContent = automatic ? "Confirmer le RDV" : "Envoyer sur WhatsApp";
+    $("#wa-send").dataset.mode = automatic ? "confirm" : "handoff";
+    $("#wa-send").dataset.handoff = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+    $("#wa-send").disabled = false;
     $("#ics-dl").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;
     $("#xp-done-lead").innerHTML = sent
       ? `C'est fait — votre confirmation est <b>déjà dans votre WhatsApp</b>.
          <small>Référence ${state.reference}. Répondez au concierge pour toute modification.</small>`
       : queued
-        ? `C'est fait — votre confirmation WhatsApp part <b>automatiquement</b>.
-           <small>Référence ${state.reference}. Elle arrivera sur le numéro que vous avez indiqué.</small>`
+        ? `Votre confirmation WhatsApp est envoyée.
+           <small>Référence ${state.reference}. Confirmez maintenant votre présence.</small>`
       : state.reference
         ? `Votre créneau est retenu sous la référence <b>${state.reference}</b>.
            <small>WhatsApp s'ouvre avec votre carte, déjà rédigée — envoyez-la telle quelle.</small>`
         : `Votre demande est prête.
            <small>Envoyez-la sur WhatsApp — le concierge bloque le créneau à réception.</small>`;
+    $("#xp-confirm-status").textContent = automatic
+      ? "Confirmez votre présence. Le concierge sera prévenu automatiquement."
+      : "L'envoi automatique est indisponible. Transmettez votre demande au concierge.";
   }
+
+  $("#wa-send").addEventListener("click", async () => {
+    const button = $("#wa-send");
+    if (button.dataset.mode === "handoff") {
+      window.open(button.dataset.handoff, "_blank", "noopener");
+      return;
+    }
+    if (!state.reference || !state.confirmationToken || state.confirmed) return;
+    button.disabled = true;
+    button.textContent = "Confirmation…";
+    try {
+      const response = await fetch(`/api/bookings/${encodeURIComponent(state.reference)}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: state.confirmationToken })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Confirmation impossible.");
+      state.confirmed = true;
+      button.textContent = "RDV confirmé";
+      $("#xp-confirm-status").textContent = "Rendez-vous confirmé. Le concierge a été prévenu.";
+      $("#tk-status").innerHTML = "Rendez-vous confirmé.<br>Votre concierge a été prévenu.";
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Réessayer";
+      $("#xp-confirm-status").textContent = error.message || "Confirmation impossible. Réessayez.";
+    }
+  });
 
   /* Aperçu du message reçu quand l'envoi serveur a eu lieu. */
   function customerEcho() {

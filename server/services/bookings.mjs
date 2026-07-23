@@ -92,8 +92,24 @@ export async function bookedSlots({ db, date }) {
   return result.rows.map((row) => row.booking_time);
 }
 
-export function publicBooking(row) {
-  return {
+export async function confirmBooking({ db, reference, token }) {
+  const result = await db.query(
+    `update bookings
+     set status = 'confirmed'
+     where reference = $1
+       and confirmation_token = $2
+       and status in ('pending', 'confirmed')
+     returning *`,
+    [reference, token]
+  );
+  if (!result.rows.length) {
+    throw new BookingError("Lien de confirmation invalide ou expiré.", 404);
+  }
+  return result.rows[0];
+}
+
+export function publicBooking(row, { includeConfirmationToken = false } = {}) {
+  const booking = {
     reference: row.reference,
     date: row.booking_date instanceof Date ? row.booking_date.toISOString().slice(0, 10) : String(row.booking_date),
     time: row.booking_time,
@@ -101,4 +117,6 @@ export function publicBooking(row) {
     models: row.models || [],
     status: row.status
   };
+  if (includeConfirmationToken) booking.confirmationToken = row.confirmation_token;
+  return booking;
 }

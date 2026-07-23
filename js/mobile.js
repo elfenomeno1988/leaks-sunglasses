@@ -245,7 +245,8 @@
 
   const rdv = {
     date: "", time: "", name: "", phone: "", note: "",
-    reference: "", delivery: "handoff", handoffText: "",
+    reference: "", confirmationToken: "", confirmed: false,
+    delivery: "handoff", handoffText: "",
     availability: new Map()
   };
 
@@ -403,10 +404,12 @@
       }
       if (!res.ok) throw new Error();
       rdv.reference = data.booking.reference;
+      rdv.confirmationToken = data.booking.confirmationToken || "";
       rdv.delivery = data.whatsapp?.delivery || "handoff";
       rdv.handoffText = data.whatsapp?.handoffText || "";
     } catch {
       rdv.reference = "";
+      rdv.confirmationToken = "";
       rdv.delivery = "handoff";
       rdv.handoffText = "";
     } finally {
@@ -420,7 +423,7 @@
     /* L'ouverture préremplie ne sert que lorsque l'API Cloud n'est pas
        disponible. En automatique, aucun second geste n'est demandé. */
     if (rdv.delivery === "handoff") {
-      const opened = window.open($("#t-wa").href, "_blank", "noopener");
+      const opened = window.open($("#t-wa").dataset.handoff, "_blank", "noopener");
       if (!opened) $("#t-wa").classList.add("pulse");
     }
   });
@@ -471,12 +474,43 @@
         : "Votre demande est prête. Envoyez-la — le concierge bloque le créneau à réception.";
     $("#t-ref").textContent = rdv.reference || "· · ·";
     $("#t-when").textContent = `${frDate(rdv.date)} · ${rdv.time}`;
-    $("#t-wa").textContent = automatic ? "Ouvrir WhatsApp" : "Envoyer sur WhatsApp";
-    $("#t-wa").href = automatic
-      ? `https://wa.me/${CONFIG.whatsappNumber}`
-      : `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;
+    $("#t-wa").textContent = automatic ? "Confirmer le RDV" : "Envoyer sur WhatsApp";
+    $("#t-wa").dataset.mode = automatic ? "confirm" : "handoff";
+    $("#t-wa").dataset.handoff = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;
+    $("#t-wa").disabled = false;
+    $("#t-confirm-status").textContent = automatic
+      ? "Confirmez votre présence. Le concierge sera prévenu automatiquement."
+      : "L'envoi automatique est indisponible. Transmettez votre demande au concierge.";
     $("#t-ics").href = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsFile())}`;
   }
+
+  $("#t-wa").addEventListener("click", async () => {
+    const button = $("#t-wa");
+    if (button.dataset.mode === "handoff") {
+      window.open(button.dataset.handoff, "_blank", "noopener");
+      return;
+    }
+    if (!rdv.reference || !rdv.confirmationToken || rdv.confirmed) return;
+    button.disabled = true;
+    button.textContent = "Confirmation…";
+    try {
+      const response = await fetch(`/api/bookings/${encodeURIComponent(rdv.reference)}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: rdv.confirmationToken })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Confirmation impossible.");
+      rdv.confirmed = true;
+      button.textContent = "RDV confirmé";
+      $("#done-lead").textContent = "Rendez-vous confirmé.";
+      $("#t-confirm-status").textContent = "Le concierge a été prévenu.";
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Réessayer";
+      $("#t-confirm-status").textContent = error.message || "Confirmation impossible. Réessayez.";
+    }
+  });
 
   /* ── Démarrage ─────────────────────────────────────────────── */
 

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { loadCatalog, resolveLineItem } from "../server/catalog.mjs";
 import { createPayDunyaClient } from "../server/payments/paydunya.mjs";
 import { checkoutSchema, createOrder, publicOrder } from "../server/services/orders.mjs";
-import { bookingSchema } from "../server/services/bookings.mjs";
+import { bookingSchema, confirmBooking, publicBooking } from "../server/services/bookings.mjs";
 import { normalizeWhatsAppPhone } from "../server/services/phones.mjs";
 import { bookingWhatsAppDelivery, syncPayment, verifyMetaSignature } from "../server/routes/storefront.mjs";
 import { buildApp } from "../server/app.mjs";
@@ -208,6 +208,35 @@ test("booking response distinguishes automatic queue from WhatsApp handoff", () 
   assert.equal(bookingWhatsAppDelivery(true, true), "queued");
   assert.equal(bookingWhatsAppDelivery(true, false), "handoff");
   assert.equal(bookingWhatsAppDelivery(false, true), "handoff");
+});
+
+test("a booking can only be confirmed with its private token", async () => {
+  const token = "13f3d655-5ec8-4c64-a73a-dfb323fc7467";
+  const calls = [];
+  const row = {
+    reference: "LK-RDV-AB12",
+    confirmation_token: token,
+    booking_date: "2026-07-29",
+    booking_time: "18:00",
+    customer_name: "Awa",
+    models: [],
+    status: "confirmed"
+  };
+  const db = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+      return params[1] === token ? { rows: [row] } : { rows: [] };
+    }
+  };
+  const confirmed = await confirmBooking({ db, reference: row.reference, token });
+  assert.equal(confirmed.status, "confirmed");
+  assert.match(calls[0].sql, /confirmation_token = \$2/);
+  await assert.rejects(
+    confirmBooking({ db, reference: row.reference, token: "bad" }),
+    (error) => error.statusCode === 404
+  );
+  assert.equal("confirmationToken" in publicBooking(row), false);
+  assert.equal(publicBooking(row, { includeConfirmationToken: true }).confirmationToken, token);
 });
 
 test("all delayed WhatsApp updates have approved-template payloads", () => {

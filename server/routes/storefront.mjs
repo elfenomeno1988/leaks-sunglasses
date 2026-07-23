@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createOrder, publicOrder } from "../services/orders.mjs";
-import { createBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
+import { createBooking, confirmBooking, bookedSlots, publicBooking } from "../services/bookings.mjs";
 import { handoffMessage, customerMessage, conciergeAlert, orderPaidMessage, orderAlert } from "../services/whatsapp.mjs";
 
 const trackingSchema = z.object({
   reference: z.string().min(8).max(40),
   tracking: z.string().uuid()
+});
+
+const bookingConfirmationSchema = z.object({
+  reference: z.string().regex(/^LK-RDV-[A-F0-9]{4}$/),
+  token: z.string().uuid()
 });
 
 export function verifyMetaSignature(secret, rawBody, signature) {
@@ -129,7 +134,7 @@ export async function storefrontRoutes(app, deps) {
         parameters: ["Nouveau rendez-vous", booking.reference, bookingAlert]
       } : null);
     return reply.code(201).send({
-      booking: publicBooking(row),
+      booking: publicBooking(row, { includeConfirmationToken: true }),
       whatsapp: {
         /* La requête ne prétend plus que Meta a livré le message : le worker
            l'envoie juste après la réponse et conserve les reprises en base. */
@@ -138,6 +143,43 @@ export async function storefrontRoutes(app, deps) {
         handoffText: handoffMessage(booking)             // la carte, déjà écrite
       }
     });
+  });
+
+  app.post("/api/bookings/:reference/confirm", {
+    config: { rateLimit: { max: 10, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const parsed = bookingConfirmationSchema.safeParse({
+      reference: request.params.reference,
+      token: request.body?.token
+    });
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "Lien de confirmation invalide." });
+    }
+
+    const row = await confirmBooking({
+      db,
+      reference: parsed.data.reference,
+      token: parsed.data.token
+    });
+    const date = row.booking_date instanceof Date
+      ? row.booking_date.toISOString().slice(0, 10)
+      : String(row.booking_date);
+    const alert = [
+      `✦ Rendez-vous confirmé par le client — ${row.reference}`,
+      `${row.customer_name} — ${row.customer_phone}`,
+      `${date} · ${row.booking_time}`
+    ].join("\n");
+    await notify.enqueue(
+      "booking-client-confirmed",
+      config.WHATSAPP_CONCIERGE_NUMBER,
+      alert,
+      row.reference,
+      config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT ? {
+        name: config.WHATSAPP_TEMPLATE_CONCIERGE_ALERT,
+        parameters: ["Rendez-vous confirmé", row.reference, alert]
+      } : null
+    );
+    return reply.send({ booking: publicBooking(row) });
   });
 
   /* ── Webhook WhatsApp Cloud (vérification + accusés + réponses) ── */
