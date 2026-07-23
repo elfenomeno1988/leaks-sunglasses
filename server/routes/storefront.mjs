@@ -142,7 +142,9 @@ export async function storefrontRoutes(app, deps) {
 
   /* ── Webhook WhatsApp Cloud (vérification + accusés + réponses) ── */
 
-  app.get("/api/whatsapp/webhook", async (request, reply) => {
+  /* Meta place le jeton de vérification dans la query string. Cette route
+     reste silencieuse afin que le logger HTTP ne persiste jamais ce secret. */
+  app.get("/api/whatsapp/webhook", { logLevel: "silent" }, async (request, reply) => {
     const { "hub.mode": mode, "hub.verify_token": token, "hub.challenge": challenge } = request.query;
     if (mode === "subscribe" && token && token === config.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
       return reply.type("text/plain").send(challenge);
