@@ -100,7 +100,7 @@ export async function adminRoutes(app, { db, auth, config, notify }) {
           parameters: bookingUpdateTemplateParameters(
             "Confirmé",
             publicBooking,
-            "Votre concierge vous attend au studio."
+            "Votre concierge vous attend pour votre essayage privé."
           )
         };
       } else if (config.WHATSAPP_TEMPLATE_BOOKING) {

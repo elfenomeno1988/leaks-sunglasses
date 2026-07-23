@@ -25,17 +25,6 @@ export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
   app.get("/api/catalog", async () => {
-    /* Les 50 exemplaires concernent toute la collection, pas chaque coloris. */
-    let collectionSold = null;
-    try {
-      const r = await db.query(
-        `select coalesce(sum(quantity), 0)::int as sold
-         from orders where payment_status = 'paid' and status <> 'cancelled'
-         and product_sku like 'LK-%'`
-      );
-      collectionSold = Number(r.rows[0]?.sold || 0);
-    } catch { /* base indisponible : on sert le catalogue sans stock */ }
-
     const products = catalog.list.map((p) => ({
       ...p,
       variants: p.variants.map((v) => ({
@@ -46,10 +35,12 @@ export async function storefrontRoutes(app, deps) {
 
     return {
       currency: catalog.currency,
-      collectionSize: catalog.collectionSize || null,
-      collectionRemaining: collectionSold == null || !catalog.collectionSize
-        ? null : Math.max(0, Number(catalog.collectionSize) - collectionSold),
-      deliveryFees: { pickup: 0, abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
+      maxOrderQuantity: catalog.maxOrderQuantity || 2,
+      editionLabel: catalog.editionLabel || "1 à 2 exemplaires par coloris",
+      dropAt: catalog.dropAt || null,
+      orderOpenAt: config.ORDER_OPEN_AT || catalog.orderOpenAt || null,
+      deliveryFees: { abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
+      freeDeliveryTiers: ["exclusive"],
       paymentMethods: config.paydunyaConfigured
         ? ["wave", "mobile_money", "card", "whatsapp_wave"]
         : ["whatsapp_wave"],
@@ -240,7 +231,7 @@ export async function syncPayment(db, provider, hooks = {}) {
           order.variant_name,
           order.reference,
           "Édition limitée",
-          order.delivery_method === "pickup" ? "Retrait au studio" : "Livraison à Abidjan"
+          "Livraison à Abidjan"
         ]
       } : null;
       await hooks.notify.enqueue("order-paid", order.customer_phone, orderPaidMessage(order), order.reference, orderTemplate);

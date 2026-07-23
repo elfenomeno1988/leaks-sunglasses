@@ -25,7 +25,7 @@ async function refresh() {
     document.querySelector("#status-product").textContent = `${order.product} × ${order.quantity}`;
     document.querySelector("#status-variant").textContent = order.variant;
     document.querySelector("#status-total").textContent = money(order.totalAmount);
-    document.querySelector("#status-delivery").textContent = order.deliveryMethod === "pickup" ? "Retrait studio" : "Livraison Abidjan";
+    document.querySelector("#status-delivery").textContent = "Livraison Abidjan";
     document.querySelector("#status-details").hidden = false;
     if (order.receiptUrl) { const link = document.querySelector("#receipt-link"); link.href = order.receiptUrl; link.hidden = false; }
     markProgress(order);

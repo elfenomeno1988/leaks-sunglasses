@@ -74,7 +74,7 @@
     }),
     model({
       id: "genesio", name: "Genesio", sku: "LK-00", tier: "premium", tierLabel: "LEAKS Premium", price: 24900,
-      description: "Carrée sculptée, contraste net et rendu studio.",
+      description: "Carrée sculptée, contraste net et rendu précis.",
       colors: [
         color("genesio", "deep-brown", "Deep Brown", ["front", "three-quarter", "macro-hinge", "macro-lens"]),
         color("genesio", "gold", "Gold", ["front", "three-quarter", "macro-hinge", "macro-lens"]),
@@ -111,7 +111,7 @@
       ]
     }),
     model({
-      id: "marco", name: "Marco", sku: "LK-02", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 34900,
+      id: "marco", name: "Marco", sku: "LK-02", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 29900,
       description: "Rectangle brun-vert, finitions profondes et contraste affirmé.",
       colors: [
         color("marco", "brown-green", "Brown Green", ["front", "three-quarter", "macro-hinge", "macro-lens"]),
@@ -119,7 +119,7 @@
       ]
     }),
     model({
-      id: "silva", name: "Silva", sku: "LK-09", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 34900,
+      id: "silva", name: "Silva", sku: "LK-09", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 29900,
       description: "Rimless sculptée, monture bijou et ligne aérienne.",
       colors: [
         color("silva", "black-gold", "Black Gold", ["front", "three-quarter"]),
@@ -128,7 +128,7 @@
       ]
     }),
     model({
-      id: "octa", name: "Octa", sku: "LK-05", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 34900,
+      id: "octa", name: "Octa", sku: "LK-05", tier: "exclusive", tierLabel: "LEAKS Exclusive", price: 29900,
       description: "Huit angles, palette vive et finitions translucides.",
       colors: [
         color("octa", "white-champagne", "White Champagne", ["front", "three-quarter"]),
@@ -151,9 +151,16 @@
       variantId: "silver", variantLabel: "Silver"
     },
     {
-      id: "eyewear-case", name: "LEAKS Eyewear Case", sku: "ACC-02", price: 9900,
-      description: "Coffret premium pour protéger, organiser et transporter jusqu'à trois paires.",
-      image: "", purchasable: true, variantId: "standard", variantLabel: "Standard"
+      id: "eyewear-case", name: "LEAKS Travel Case", sku: "ACC-02", price: 14900,
+      description: "Coffret de voyage premium en similicuir noir pour protéger et transporter vos lunettes.",
+      image: "/assets/img/accessories/travel-case/black/hero.webp",
+      views: [
+        "/assets/img/accessories/travel-case/black/hero.webp",
+        "/assets/img/accessories/travel-case/black/standing.webp",
+        "/assets/img/accessories/travel-case/black/logo-detail.webp",
+        "/assets/img/accessories/travel-case/black/clasp-detail.webp"
+      ],
+      purchasable: true, variantId: "black", variantLabel: "Black"
     }
   ];
 })();

@@ -21,14 +21,14 @@ export class BookingError extends Error {
 }
 
 function abidjanToday() {
-  // Abidjan vit en UTC : la date « du jour » côté studio est la date UTC.
+  // Abidjan vit en UTC : la date locale est donc la date UTC.
   return new Date().toISOString().slice(0, 10);
 }
 
 function assertBookableDate(iso) {
   const date = new Date(`${iso}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) throw new BookingError("Date invalide.");
-  if (date.getUTCDay() === 0) throw new BookingError("Le studio est fermé le dimanche.");
+  if (date.getUTCDay() === 0) throw new BookingError("Les essayages ne sont pas proposés le dimanche.");
   const today = abidjanToday();
   if (iso < today) throw new BookingError("Cette date est déjà passée.");
   const horizon = new Date(`${today}T00:00:00Z`);
@@ -42,8 +42,7 @@ export async function createBooking({ db, catalog, input }) {
   const values = bookingSchema.parse(input ?? {});
   assertBookableDate(values.date);
 
-  /* Anti-abus : deux rendez-vous à venir maximum par numéro —
-     personne ne peut bloquer le calendrier du studio. */
+  /* Anti-abus : deux rendez-vous à venir maximum par numéro. */
   const phoneDigits = values.phone.replace(/\D/g, "");
   const active = await db.query(
     `select count(*)::int as n from bookings

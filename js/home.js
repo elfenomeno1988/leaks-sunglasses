@@ -3,7 +3,8 @@
 const CONFIG = {
   brandName: "LEAKS",
   whatsappNumber: "2250173891404",
-  dropDate: "2026-07-25T20:00:00Z"
+  dropDate: "2026-07-25T20:00:00Z",
+  orderOpenAt: "2026-07-24T00:00:00Z"
 };
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -19,7 +20,7 @@ function renderCatalog() {
   const tiers = [
     { id: "classic", label: "LEAKS Classic", note: "19 900 F CFA" },
     { id: "premium", label: "LEAKS Premium", note: "24 900 F CFA" },
-    { id: "exclusive", label: "LEAKS Exclusive", note: "34 900 F CFA" }
+    { id: "exclusive", label: "LEAKS Exclusive", note: "29 900 F CFA · livraison offerte à Abidjan" }
   ];
   let position = 0;
   root.innerHTML = tiers.map((tier) => {
@@ -40,7 +41,7 @@ function renderCatalog() {
             <span class="card-row"><h3><span class="idx">${String(position).padStart(2, "0")}</span> LEAKS — ${model.name}</h3><span class="tag">${model.sku}</span></span>
             <span class="card-sub"><span>${colorCount}</span><span class="price">${money(model.price)}</span></span>
           </a>
-          <a class="card-buy" href="/checkout.html?product=${encodeURIComponent(model.id)}&amp;variant=${encodeURIComponent(first.variantId)}">Acheter directement</a>
+          <a class="card-buy" data-order-link href="/checkout.html?product=${encodeURIComponent(model.id)}&amp;variant=${encodeURIComponent(first.variantId)}">Acheter directement</a>
         </article>`;
     }).join("");
     return `
@@ -59,11 +60,11 @@ function renderAccessories() {
   if (!root) return;
   root.innerHTML = accessories.map((item) => {
     const action = item.purchasable
-      ? `<a class="card-buy" href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
+      ? `<a class="card-buy" data-order-link href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
       : `<a class="card-buy" data-wa href="#" target="_blank" rel="noopener">Écrire au concierge</a>`;
     const visual = item.image
       ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
-      : `<span class="accessory-placeholder">LEAKS<br>Eyewear Case</span>`;
+      : `<span class="accessory-placeholder">LEAKS<br>Travel Case</span>`;
     return `
       <article class="accessory-card r">
         <div class="accessory-visual">${visual}</div>
@@ -76,6 +77,30 @@ function renderAccessories() {
 
 renderCatalog();
 renderAccessories();
+
+const orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
+
+function applyOrderGate() {
+  const isOpen = Date.now() >= orderOpenTime;
+  $$("[data-order-link]").forEach((link) => {
+    if (!link.dataset.originalLabel) link.dataset.originalLabel = link.textContent;
+    link.textContent = isOpen ? link.dataset.originalLabel : "Commandes le 24.07.2026";
+    link.classList.toggle("is-locked", !isOpen);
+    link.setAttribute("aria-disabled", String(!isOpen));
+  });
+}
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-order-link].is-locked");
+  if (!link) return;
+  event.preventDefault();
+  $(".order-opening")?.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+applyOrderGate();
+if (Date.now() < orderOpenTime) {
+  setTimeout(applyOrderGate, Math.min(orderOpenTime - Date.now() + 1000, 2_147_000_000));
+}
 
 /* Révélations */
 const io = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {

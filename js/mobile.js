@@ -8,7 +8,8 @@
   const CONFIG = {
     brandName: "LEAKS",
     whatsappNumber: "2250173891404",
-    dropDate: "2026-07-25T20:00:00Z"
+    dropDate: "2026-07-25T20:00:00Z",
+    orderOpenAt: "2026-07-24T00:00:00Z"
   };
 
   const SLOTS = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -41,12 +42,12 @@
   tick();
   setInterval(tick, 1000);
 
-  /* ── Routage : #/drop · #/collection · #/model/<id> · #/rdv · #/studio ── */
+  /* ── Routage : #/drop · #/collection · #/model/<id> · #/rdv · #/info ──── */
 
   const screens = $$(".screen");
   const tabs = $$(".tabbar a");
   const backBtn = $("#ah-back");
-  const ROOTS = new Set(["drop", "collection", "rdv", "studio"]);
+  const ROOTS = new Set(["drop", "collection", "rdv", "info"]);
 
   function route() {
     const parts = (location.hash.replace(/^#\/?/, "") || "drop").split("/");
@@ -104,6 +105,7 @@
       a.href = item.purchasable
         ? `/checkout.html?product=${encodeURIComponent(item.id)}&variant=${encodeURIComponent(item.variantId)}`
         : waGeneric;
+      if (item.purchasable) a.dataset.orderLink = "";
       if (!item.purchasable) {
         a.target = "_blank";
         a.rel = "noopener";
@@ -111,10 +113,36 @@
       a.innerHTML = `
         <span class="f-visual">${item.image
           ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
-          : `<span class="accessory-fallback">LEAKS<br>Eyewear Case</span>`}</span>
+          : `<span class="accessory-fallback">LEAKS<br>Travel Case</span>`}</span>
         <span class="f-meta"><span><span class="f-name">${item.name}</span><span class="f-sub">${item.description}</span></span><span class="f-price">${money(item.price)}</span></span>`;
       feed.appendChild(a);
     });
+  }
+
+  /* ── Ouverture des commandes ─────────────────────────────── */
+
+  const orderOpenTime = new Date(CONFIG.orderOpenAt).getTime();
+
+  function applyOrderGate() {
+    const isOpen = Date.now() >= orderOpenTime;
+    $$("[data-order-link]").forEach((link) => {
+      if (!link.dataset.originalLabel) link.dataset.originalLabel = link.textContent;
+      link.textContent = isOpen ? link.dataset.originalLabel : "Commandes le 24.07.2026";
+      link.classList.toggle("is-locked", !isOpen);
+      link.setAttribute("aria-disabled", String(!isOpen));
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-order-link].is-locked");
+    if (!link) return;
+    event.preventDefault();
+    $("[data-screen='drop']")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  applyOrderGate();
+  if (Date.now() < orderOpenTime) {
+    setTimeout(applyOrderGate, Math.min(orderOpenTime - Date.now() + 1000, 2_147_000_000));
   }
 
   /* ── Écran modèle : pager de vues + coloris ────────────────── */
@@ -358,7 +386,7 @@
       `· ${rdv.name} — ${prettyPhone()}`,
       rdv.note ? `· Note : ${rdv.note}` : null,
       "",
-      "Quarante-cinq minutes, le studio pour moi seul.",
+      "Un créneau privé de quarante-cinq minutes.",
       "Un mot de votre concierge pour confirmer ?"
     ].filter((l) => l !== null).join("\n");
   }
@@ -374,7 +402,7 @@
       `DTSTART:${dt}`,
       "DURATION:PT45M",
       `SUMMARY:Essayage privé LEAKS${rdv.reference ? ` — ${rdv.reference}` : ""}`,
-      "LOCATION:LEAKS Studio — Abidjan",
+      "LOCATION:Abidjan — lieu communiqué sur WhatsApp",
       "END:VEVENT", "END:VCALENDAR"
     ].join("\r\n");
   }

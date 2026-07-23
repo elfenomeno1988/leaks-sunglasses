@@ -13,8 +13,9 @@ export function resolveLineItem(catalog, productId, variantId, quantity) {
   if (!product) throw Object.assign(new Error("Produit introuvable."), { statusCode: 400 });
   const variant = product.variants.find((entry) => entry.id === variantId);
   if (!variant) throw Object.assign(new Error("Coloris introuvable."), { statusCode: 400 });
-  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 3) {
-    throw Object.assign(new Error("La quantité doit être comprise entre 1 et 3."), { statusCode: 400 });
+  const maxQuantity = Number(catalog.maxOrderQuantity) || 2;
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > maxQuantity) {
+    throw Object.assign(new Error(`La quantité doit être comprise entre 1 et ${maxQuantity}.`), { statusCode: 400 });
   }
   return { product, variant, quantity, subtotal: product.price * quantity };
 }

@@ -20,7 +20,8 @@ const config = {
   PAYDUNYA_MODE: "test", PAYDUNYA_MASTER_KEY: "master-test-key",
   PAYDUNYA_PRIVATE_KEY: "private", PAYDUNYA_TOKEN: "token",
   paydunyaConfigured: true,
-  WHATSAPP_NUMBER: "2250173891404", DELIVERY_ABIDJAN_FEE: 2000,
+  WHATSAPP_NUMBER: "2250173891404", DELIVERY_ABIDJAN_FEE: 1000,
+  ORDER_OPEN_AT: "2020-01-01T00:00:00Z",
   META_GRAPH_VERSION: "v25.0",
   WHATSAPP_TEMPLATE_BOOKING: "leaks_confirmation_rdv",
   WHATSAPP_TEMPLATE_ORDER: "leaks_confirmation_commande",
@@ -40,6 +41,7 @@ test("catalogue resolves a server-priced variant", async () => {
   assert.equal(line.variant.name, "Deep Brown");
   assert.equal(line.subtotal, 49800);
   assert.throws(() => resolveLineItem(catalog, "genesio", "inconnu", 1));
+  assert.throws(() => resolveLineItem(catalog, "genesio", "deep-brown", 3));
   assert.throws(() => resolveLineItem(catalog, "genesio", "deep-brown", 4));
 });
 
@@ -83,10 +85,29 @@ test("browser and server catalogues stay aligned and reference real assets", asy
 });
 
 test("checkout validates Côte d'Ivoire contact and delivery address", () => {
-  const base = { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "pickup", paymentMethod: "wave" };
+  const base = { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "0700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" };
   assert.equal(checkoutSchema.parse(base).customerPhone, "0700000000");
   assert.equal(checkoutSchema.parse({ ...base, customerPhone: "+225 07 00 00 00 00" }).customerPhone, "2250700000000");
   assert.equal(checkoutSchema.safeParse({ ...base, deliveryMethod: "abidjan_delivery", deliveryAddress: "court" }).success, false);
+});
+
+test("orders cannot be created before the announced opening", async () => {
+  const catalog = await loadCatalog();
+  const db = { query: async () => { throw new Error("database should not be called"); } };
+  await assert.rejects(
+    createOrder({
+      db, catalog,
+      config: { ...config, ORDER_OPEN_AT: "2099-01-01T00:00:00Z" },
+      paydunya: {},
+      input: {
+        productId: "genesio", variantId: "deep-brown", quantity: 1,
+        customerName: "Awa Kouassi", customerEmail: "awa@example.com",
+        customerPhone: "0700000000", deliveryMethod: "abidjan_delivery",
+        deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "whatsapp_wave"
+      }
+    }),
+    (error) => error.statusCode === 425 && /24.07.2026/.test(error.message)
+  );
 });
 
 test("online payment is refused before creating an order when PayDunya is not configured", async () => {
@@ -102,7 +123,8 @@ test("online payment is refused before creating an order when PayDunya is not co
       input: {
         productId: "genesio", variantId: "deep-brown", quantity: 1,
         customerName: "Awa Kouassi", customerEmail: "awa@example.com",
-        customerPhone: "0700000000", deliveryMethod: "pickup", paymentMethod: "wave"
+        customerPhone: "0700000000", deliveryMethod: "abidjan_delivery",
+        deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave"
       }
     }),
     (error) => error.statusCode === 503 && /WhatsApp/.test(error.message)
@@ -142,7 +164,7 @@ test("payment synchronization trusts independently confirmed provider data", asy
 });
 
 test("public order response does not expose customer or provider secrets", () => {
-  const result = publicOrder({ reference: "LK-1", status: "confirmed", payment_status: "paid", product_name: "Genesio", product_sku: "LK-00", variant_name: "Original", quantity: 1, total_amount: 20000, currency: "XOF", delivery_method: "pickup", created_at: new Date(), receipt_url: null, customer_email: "secret@example.com", provider_token: "secret" });
+  const result = publicOrder({ reference: "LK-1", status: "confirmed", payment_status: "paid", product_name: "Genesio", product_sku: "LK-00", variant_name: "Original", quantity: 1, total_amount: 20000, currency: "XOF", delivery_method: "abidjan_delivery", created_at: new Date(), receipt_url: null, customer_email: "secret@example.com", provider_token: "secret" });
   assert.equal(result.product, "Genesio LK-00");
   assert.equal("customer_email" in result, false);
   assert.equal("provider_token" in result, false);
@@ -158,12 +180,12 @@ test("notification queue stores approved Meta template data", async () => {
   });
   await center.enqueue("order-paid", " +225 07 00 00 00 00 ", "Commande confirmée", "LK-TEST", {
     name: "leaks_confirmation_commande",
-    parameters: ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Retrait au studio"]
+    parameters: ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Livraison à Abidjan"]
   });
   assert.match(calls[0][0], /template_name/);
   assert.equal(calls[0][1][1], "2250700000000");
   assert.equal(calls[0][1][4], "leaks_confirmation_commande");
-  assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Retrait au studio"]);
+  assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Livraison à Abidjan"]);
 });
 
 test("booking response distinguishes automatic queue from WhatsApp handoff", () => {
@@ -252,22 +274,44 @@ test("order creation persists server totals before creating the payment invoice"
   const db = {
     async query(sql, params) {
       calls.push({ sql, params });
-      if (sql.includes("from orders") && sql.includes("as sold")) {
-        return { rows: [{ sold: 0, reserved: 0 }] };
-      }
       if (sql.includes("insert into orders")) return { rows: [{ id: "order-id", reference: params[0], tracking_token: params[1], status: "pending_payment", payment_status: "pending", payment_method: params[2], product_name: params[6], product_sku: params[5], variant_name: params[8], quantity: params[10], total_amount: params[13], currency: "XOF", delivery_method: params[11], created_at: new Date() }] };
       const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
-      return { rows: [{ id: "order-id", reference: insertCall.params[0], tracking_token: insertCall.params[1], status: "pending_payment", payment_status: "pending", payment_method: "wave", product_name: "Genesio", product_sku: "LK-00", variant_name: "Deep Brown", quantity: 1, total_amount: 26900, currency: "XOF", delivery_method: "abidjan_delivery", created_at: new Date(), provider_token: "test_invoice" }] };
+      return { rows: [{ id: "order-id", reference: insertCall.params[0], tracking_token: insertCall.params[1], status: "pending_payment", payment_status: "pending", payment_method: "wave", product_name: "Genesio", product_sku: "LK-00", variant_name: "Deep Brown", quantity: 1, total_amount: 25900, currency: "XOF", delivery_method: "abidjan_delivery", created_at: new Date(), provider_token: "test_invoice" }] };
     }
   };
-  const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 26900); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
+  const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 25900); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
   const result = await createOrder({ db, catalog, config, paydunya, input: { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" } });
   assert.equal(result.redirectUrl, "https://pay.test/invoice");
-  /* La vérification de stock passe d'abord ; on cible l'insert par son SQL. */
   const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
   assert.ok(insertCall, "insert into orders attendu");
-  assert.equal(insertCall.params[13], 26900);
+  assert.equal(insertCall.params[13], 25900);
   assert.equal(insertCall.params[19], null); // aucun numéro de série ou quota par coloris
+});
+
+test("LEAKS Exclusive delivery in Abidjan is free", async () => {
+  const catalog = await loadCatalog();
+  let insertParams;
+  const db = {
+    async query(sql, params) {
+      if (sql.includes("insert into orders")) {
+        insertParams = params;
+        return { rows: [{ id: "order-id", reference: params[0], tracking_token: params[1], total_amount: params[13] }] };
+      }
+      return { rows: [] };
+    }
+  };
+  const result = await createOrder({
+    db, catalog, config, paydunya: {},
+    input: {
+      productId: "marco", variantId: "brown-green", quantity: 1,
+      customerName: "Awa Kouassi", customerEmail: "awa@example.com",
+      customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery",
+      deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "whatsapp_wave"
+    }
+  });
+  assert.equal(insertParams[12], 0);
+  assert.equal(insertParams[13], 29900);
+  assert.equal(result.manual, true);
 });
 
 test("Fastify serves commerce pages and the public catalogue", async () => {
@@ -283,7 +327,11 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   const catalogResponse = await app.inject({ method: "GET", url: "/api/catalog" });
   assert.equal(catalogResponse.statusCode, 200);
   assert.equal(catalogResponse.json().products.length, 14);
-  assert.equal(catalogResponse.json().collectionSize, 50);
+  assert.equal(catalogResponse.json().maxOrderQuantity, 2);
+  assert.equal(catalogResponse.json().editionLabel, "1 à 2 exemplaires par coloris");
+  assert.equal(catalogResponse.json().orderOpenAt, "2020-01-01T00:00:00Z");
+  assert.deepEqual(catalogResponse.json().freeDeliveryTiers, ["exclusive"]);
+  assert.equal(catalogResponse.json().deliveryFees.abidjan_delivery, 1000);
   assert.deepEqual(catalogResponse.json().paymentMethods, ["wave", "mobile_money", "card", "whatsapp_wave"]);
   const galleryRedirect = await app.inject({ method: "GET", url: "/gallery" });
   assert.equal(galleryRedirect.statusCode, 302);

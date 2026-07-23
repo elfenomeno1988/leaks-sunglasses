@@ -104,7 +104,7 @@ clé secrète, jeton de vérification et abonnement de l'app au compte WhatsApp.
 
    > LEAKS ✦ Votre essayage privé est retenu.
    >
-   > {{1}} à {{2}} — LEAKS Studio, Abidjan.
+   > {{1}} à {{2}} — Abidjan. Le lieu est communiqué par votre concierge.
    > Référence {{3}}.
    >
    > Pour toute modification, contactez votre concierge LEAKS.

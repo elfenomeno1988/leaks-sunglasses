@@ -24,7 +24,7 @@ suivi client et gestion des commandes.
 ## Parcours client
 
 1. « Acheter » depuis le hero, la sélection archive ou une carte produit.
-2. Choix de la série / variante, quantité, retrait/livraison et coordonnées.
+2. Choix de la série / variante, quantité, livraison et coordonnées.
 3. Paiement Wave direct, Mobile Money/Djamo, carte, ou commande WhatsApp Wave.
 4. Redirection vers PayDunya, puis retour vers le suivi privé de commande.
 5. Confirmation uniquement après vérification serveur du paiement.

@@ -84,7 +84,7 @@ function openOrder(order) {
   const content = document.querySelector("#dialog-content");
   content.innerHTML = `<p class="kicker">${escapeHtml(order.reference)}</p><h2>${escapeHtml(order.product_name)} — ${escapeHtml(order.variant_name)}</h2>
     <dl class="dialog-details"><div><dt>Client</dt><dd>${escapeHtml(order.customer_name)}</dd></div><div><dt>Téléphone</dt><dd>+225 ${escapeHtml(order.customer_phone)}</dd></div>
-    <div><dt>E-mail</dt><dd>${escapeHtml(order.customer_email)}</dd></div><div><dt>Réception</dt><dd>${order.delivery_method === "pickup" ? "Retrait studio" : escapeHtml(order.delivery_address || "Livraison Abidjan")}</dd></div>
+    <div><dt>E-mail</dt><dd>${escapeHtml(order.customer_email)}</dd></div><div><dt>Livraison</dt><dd>${escapeHtml(order.delivery_address || "Adresse à confirmer")}</dd></div>
     <div><dt>Paiement</dt><dd>${labels[order.payment_status] || order.payment_status}</dd></div><div><dt>Total</dt><dd>${money(order.total_amount)}</dd></div></dl>
     <form id="order-update" class="dialog-form"><label>Statut<select name="status">${["pending_payment","confirmed","preparing","ready","shipped","delivered","cancelled"].map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${labels[status]}</option>`).join("")}</select></label>
     ${order.payment_provider === "manual" ? `<label>Paiement manuel<select name="paymentStatus">${["pending","paid","cancelled","refunded"].map((status) => `<option value="${status}" ${status === order.payment_status ? "selected" : ""}>${labels[status]}</option>`).join("")}</select></label>` : ""}

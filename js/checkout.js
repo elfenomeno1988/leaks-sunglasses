@@ -5,8 +5,10 @@ const params = new URLSearchParams(location.search);
 const productId = params.get("product") || "oryx";
 const requestedVariant = params.get("variant") || "";
 let product;
-let deliveryFee = 2000;
+let deliveryFee = 1000;
+let freeDeliveryTiers = ["exclusive"];
 let paymentMethods = ["whatsapp_wave"];
+let orderOpenAt = "2026-07-24T00:00:00Z";
 
 const money = (value, suffix = " F CFA") => new Intl.NumberFormat("fr-FR").format(value) + suffix;
 const $ = (selector) => document.querySelector(selector);
@@ -26,6 +28,9 @@ async function initialize() {
   try {
     const catalog = await api("/api/catalog");
     deliveryFee = catalog.deliveryFees.abidjan_delivery;
+    orderOpenAt = catalog.orderOpenAt || orderOpenAt;
+    freeDeliveryTiers = Array.isArray(catalog.freeDeliveryTiers)
+      ? catalog.freeDeliveryTiers : ["exclusive"];
     paymentMethods = Array.isArray(catalog.paymentMethods) && catalog.paymentMethods.length
       ? catalog.paymentMethods : ["whatsapp_wave"];
     document.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
@@ -62,9 +67,25 @@ async function initialize() {
     $("#product-name").textContent = `${product.name.startsWith("LEAKS") ? product.name : `LEAKS — ${product.name}`} · ${product.sku}`;
     $("#product-description").textContent = product.description;
     updateSummary();
+    updateOpeningState();
   } catch (error) {
     showError("Le catalogue est temporairement indisponible. Réessayez dans un instant.");
     submit.disabled = true;
+  }
+}
+
+function updateOpeningState() {
+  const opens = new Date(orderOpenAt).getTime();
+  const isOpen = Number.isFinite(opens) && Date.now() >= opens;
+  $("#checkout-opening").textContent = isOpen
+    ? "Les commandes sont ouvertes."
+    : "Commandes ouvertes à partir du 24.07.2026.";
+  submit.disabled = !isOpen;
+  if (!isOpen) {
+    submit.title = "Les commandes ouvrent le 24.07.2026.";
+    setTimeout(updateOpeningState, Math.min(opens - Date.now() + 1000, 2_147_000_000));
+  } else {
+    submit.removeAttribute("title");
   }
 }
 
@@ -76,19 +97,25 @@ function updateSummary() {
   if (!product) return;
   const variant = selectedVariant();
   const quantity = Number($("#quantity").value);
-  const delivery = form.elements.deliveryMethod.value === "abidjan_delivery" ? deliveryFee : 0;
+  const isDelivery = true;
+  const freeDelivery = isDelivery && freeDeliveryTiers.includes(product.tier);
+  const delivery = isDelivery && !freeDelivery ? deliveryFee : 0;
   const subtotal = product.price * quantity;
   $("#product-image").src = variant.image;
   $("#product-image").alt = `${product.name} — ${variant.name}`;
   $("#summary-variant").textContent = variant.name;
   $("#summary-quantity").textContent = quantity;
   $("#summary-subtotal").textContent = money(subtotal, " F");
-  $("#summary-delivery").textContent = delivery ? money(delivery, " F") : "Gratuite";
+  $("#summary-delivery").textContent = isDelivery
+    ? (freeDelivery ? "Offerte" : money(delivery, " F"))
+    : "Gratuite";
   $("#summary-total").textContent = money(subtotal + delivery);
   $("#submit-total").textContent = money(subtotal + delivery);
-  $("#delivery-fee-label").textContent = `+ ${money(deliveryFee, " F")}`;
-  $("#address-wrap").hidden = delivery === 0;
-  form.elements.deliveryAddress.required = delivery > 0;
+  $("#delivery-fee-label").textContent = freeDeliveryTiers.includes(product.tier)
+    ? "Offerte avec LEAKS Exclusive"
+    : `+ ${money(deliveryFee, " F")}`;
+  $("#address-wrap").hidden = false;
+  form.elements.deliveryAddress.required = isDelivery;
   const manual = form.elements.paymentMethod.value === "whatsapp_wave";
   submit.querySelector("span").textContent = manual ? "Continuer sur WhatsApp" : "Continuer vers le paiement";
 }
@@ -103,6 +130,10 @@ form.addEventListener("change", updateSummary);
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorBox.hidden = true;
+  if (Date.now() < new Date(orderOpenAt).getTime()) {
+    showError("Les commandes ouvrent le 24.07.2026.");
+    return;
+  }
   if (!form.reportValidity() || !product) return;
   const values = Object.fromEntries(new FormData(form));
   const original = submit.innerHTML;

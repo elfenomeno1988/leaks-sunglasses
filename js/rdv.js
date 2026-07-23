@@ -20,7 +20,7 @@
     delivery: "handoff", handoffText: ""
   };
 
-  /* ── Utilitaires date (le studio vit en UTC, comme Abidjan) ── */
+  /* ── Utilitaires date (Abidjan vit en UTC) ────────────────── */
 
   const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -258,7 +258,7 @@
       `· ${state.name} — ${prettyPhone()}`,
       state.note ? `· Note : ${state.note}` : null,
       "",
-      "Quarante-cinq minutes, le studio pour moi seul.",
+      "Un créneau privé de quarante-cinq minutes.",
       "Un mot de votre concierge pour confirmer ?"
     ];
     return lines.filter((l) => l !== null).join("\n");
@@ -276,8 +276,8 @@
       `DTSTART:${dt}`,
       "DURATION:PT45M",
       `SUMMARY:${esc(`Essayage privé LEAKS${state.reference ? ` — ${state.reference}` : ""}`)}`,
-      "LOCATION:LEAKS Studio — Abidjan",
-      `DESCRIPTION:${esc("Le studio pour vous seul, 45 minutes. Concierge sur WhatsApp : +" + CONFIG.whatsappNumber)}`,
+      "LOCATION:Abidjan — lieu communiqué sur WhatsApp",
+      `DESCRIPTION:${esc("Essayage privé de 45 minutes. Lieu communiqué par le concierge sur WhatsApp : +" + CONFIG.whatsappNumber)}`,
       "END:VEVENT", "END:VCALENDAR"
     ].join("\r\n");
   }
@@ -311,7 +311,7 @@
     return [
       "LEAKS ✦ Votre essayage privé est retenu.",
       "",
-      `${frDate(state.date)} · ${state.time} — LEAKS Studio, Abidjan`,
+      `${frDate(state.date)} · ${state.time} — Abidjan`,
       `Référence ${state.reference}`,
       "",
       "Répondez à ce message — votre concierge vous lit."

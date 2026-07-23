@@ -116,7 +116,7 @@ export function createNotificationCenter({ db, whatsapp, config = {}, logger = c
             parameters: bookingUpdateTemplateParameters(
               "Rappel pour aujourd'hui",
               booking,
-              "Votre essayage privé vous attend au studio."
+              "Votre essayage privé vous attend à Abidjan."
             )
           };
         } else if (config.WHATSAPP_TEMPLATE_BOOKING) {

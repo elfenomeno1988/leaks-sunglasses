@@ -25,7 +25,7 @@ const CONFIG = {
 const SERVICES = {
   essayage: { label: "Essayage privé", duration: "45 min", amount: 10000, amountLabel: "Acompte à régler", note: "déduit de votre achat" },
   preorder: { label: "Pré-réservation drop", duration: "15 min", amount: 10000, amountLabel: "Acompte à régler", note: "déduit de votre achat" },
-  retrait:  { label: "Retrait & ajustage", duration: "15 min", amount: 0, amountLabel: "À régler", note: "" }
+  livraison: { label: "Livraison à Abidjan", duration: "", amount: 1000, amountLabel: "Frais", note: "" }
 };
 
 const SLOT_TIMES = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -230,8 +230,8 @@ function renderSlots() {
   }
   const isSunday = new Date(state.date + "T00:00:00").getDay() === 0;
   dateHint.textContent = isSunday
-    ? "Le studio est fermé le dimanche — choisissez un autre jour."
-    : "Le studio est fermé le dimanche.";
+    ? "Les essayages ne sont pas proposés le dimanche — choisissez un autre jour."
+    : "Les essayages ne sont pas proposés le dimanche.";
   dateHint.classList.toggle("closed", isSunday);
   if (isSunday) { state.time = ""; updateSummary(); return; }
 

@@ -5,12 +5,12 @@ import { resolveLineItem } from "../catalog.mjs";
 export const checkoutSchema = z.object({
   productId: z.string().min(1).max(40),
   variantId: z.string().min(1).max(40),
-  quantity: z.coerce.number().int().min(1).max(3),
+  quantity: z.coerce.number().int().min(1).max(2),
   customerName: z.string().trim().min(2).max(120),
   customerEmail: z.string().trim().email().max(200),
   customerPhone: z.string().trim().transform((value) => value.replace(/\D/g, ""))
     .refine((value) => /^(?:225)?\d{10}$/.test(value), "Numéro ivoirien invalide."),
-  deliveryMethod: z.enum(["pickup", "abidjan_delivery"]),
+  deliveryMethod: z.literal("abidjan_delivery"),
   deliveryAddress: z.string().trim().max(300).optional().default(""),
   customerNote: z.string().trim().max(500).optional().default(""),
   paymentMethod: z.enum(["wave", "mobile_money", "card", "all", "whatsapp_wave"])
@@ -31,32 +31,17 @@ function makeReference() {
 }
 
 export async function createOrder({ db, catalog, config, paydunya, input }) {
+  const opensAt = new Date(config.ORDER_OPEN_AT || catalog.orderOpenAt).getTime();
+  if (Number.isFinite(opensAt) && Date.now() < opensAt) {
+    throw Object.assign(new Error("Les commandes ouvrent le 24.07.2026."), { statusCode: 425 });
+  }
   const values = checkoutSchema.parse(input);
   const line = resolveLineItem(catalog, values.productId, values.variantId, values.quantity);
 
-  /* Le retour client précise 50 exemplaires au total pour le drop,
-     et non 50 par modèle ou par coloris. */
-  const collectionSize = Number(catalog.collectionSize) || null;
-  if (collectionSize && line.product.tier !== "accessory") {
-    const counts = await db.query(
-      `select
-         coalesce(sum(quantity) filter (where payment_status = 'paid'), 0)::int as sold,
-         coalesce(sum(quantity) filter (where payment_status = 'pending'
-           and created_at > now() - interval '30 minutes'), 0)::int as reserved
-       from orders
-       where status <> 'cancelled' and product_sku like 'LK-%'`
-    );
-    const row = counts.rows[0] || {};
-    const remaining = collectionSize - Number(row.sold || 0) - Number(row.reserved || 0);
-    if (line.quantity > remaining) {
-      const message = remaining > 0
-        ? `Édition presque épuisée — il reste ${remaining} exemplaire${remaining > 1 ? "s" : ""} pour l'ensemble du drop.`
-        : `Le Drop 004 est épuisé — édition limitée à ${collectionSize} exemplaires au total.`;
-      throw Object.assign(new Error(message), { statusCode: 409 });
-    }
-  }
-
-  const deliveryFee = values.deliveryMethod === "abidjan_delivery" ? config.DELIVERY_ABIDJAN_FEE : 0;
+  const deliveryFee = values.deliveryMethod === "abidjan_delivery"
+    && line.product.tier !== "exclusive"
+    ? config.DELIVERY_ABIDJAN_FEE
+    : 0;
   const totalAmount = line.subtotal + deliveryFee;
   const reference = makeReference();
   const trackingToken = randomUUID();

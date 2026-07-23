@@ -20,11 +20,11 @@ export function customerMessage(b) {
   return [
     "LEAKS ✦ Votre essayage privé est retenu.",
     "",
-    `${frDate(b.date)} · ${b.time} — LEAKS Studio, Abidjan`,
+    `${frDate(b.date)} · ${b.time} — Abidjan`,
     `Référence ${b.reference}`,
     "",
-    "Le studio vous appartient quarante-cinq minutes,",
-    "la collection posée devant vous.",
+    "Votre créneau privé dure quarante-cinq minutes.",
+    "Le lieu vous est communiqué par votre concierge.",
     "",
     "Un empêchement, une envie particulière ?",
     "Répondez à ce message — votre concierge vous lit."
@@ -47,7 +47,7 @@ export function bookingConfirmedMessage(b) {
   return [
     "LEAKS ✦ Votre créneau est confirmé.",
     "",
-    `${frDate(b.date)} · ${b.time} — LEAKS Studio, Abidjan`,
+    `${frDate(b.date)} · ${b.time} — Abidjan`,
     `Référence ${b.reference}`,
     "",
     "Le concierge vous attend. Un empêchement ?",
@@ -60,8 +60,8 @@ export function bookingReminderMessage(b) {
     "LEAKS ✦ C'est aujourd'hui.",
     "",
     `Votre essayage privé vous attend à ${b.time} —`,
-    "LEAKS Studio, Abidjan. Le studio est à vous,",
-    "quarante-cinq minutes, la collection posée devant vous.",
+    "Abidjan. Retrouvez le lieu dans votre confirmation,",
+    "pour un créneau privé de quarante-cinq minutes.",
     "",
     `Référence ${b.reference}. À tout à l'heure.`
   ].join("\n");
@@ -74,9 +74,7 @@ export function orderPaidMessage(o) {
     `${o.product_name} — ${o.variant_name}`,
     `Référence ${o.reference}`,
     "",
-    o.delivery_method === "pickup"
-      ? "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle vous attend au studio."
-      : "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle part vers vous, à Abidjan.",
+    "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle part vers vous, à Abidjan.",
     "",
     "Votre packaging complet accompagne la commande."
   ].filter((l) => l !== null).join("\n");
@@ -88,9 +86,8 @@ const ORDER_STATUS_LINES = {
     "",
     `${o.product_name} — ${o.variant_name} · ${o.reference}`,
     "",
-    "Elle est prête au studio.",
-    "LEAKS Studio — Abidjan · Lun – Sam · 10 h → 19 h.",
-    "Présentez simplement ce message."
+    "Elle est préparée et sera confiée à la livraison.",
+    "Votre concierge vous écrira dès son départ."
   ],
   shipped: (o) => [
     "LEAKS ✦ Votre paire est en route.",
@@ -116,14 +113,14 @@ export function orderStatusMessage(status, order) {
 }
 
 const ORDER_STATUS_LABELS = {
-  ready: "Prête au studio",
+  ready: "Préparée pour livraison",
   shipped: "En route",
   delivered: "Livrée"
 };
 
 export function orderStatusTemplateParameters(status, order) {
   const detail = status === "ready"
-    ? "Retrait au studio, du lundi au samedi de 10 h à 19 h."
+    ? "Votre concierge vous écrira dès le départ de la livraison."
     : status === "shipped"
       ? "Le livreur vous appellera à l'approche."
       : "Le concierge reste disponible pour tout ajustage.";
@@ -145,7 +142,7 @@ export function orderAlert(o) {
     `✦ Commande payée — ${o.reference}`,
     "",
     `${o.product_name} — ${o.variant_name} × ${o.quantity}`,
-    `${frAmount(o.total_amount)} · ${o.delivery_method === "pickup" ? "Retrait studio" : "Livraison Abidjan"}`,
+    `${frAmount(o.total_amount)} · Livraison Abidjan`,
     `${o.customer_name} — ${o.customer_phone}`,
     o.delivery_address ? `Adresse : ${o.delivery_address}` : null,
     o.customer_note ? `Note : ${o.customer_note}` : null
@@ -164,7 +161,7 @@ export function handoffMessage(b) {
     `· ${b.name} — ${b.phone}`,
     b.note ? `· Note : ${b.note}` : null,
     "",
-    "Quarante-cinq minutes, le studio pour moi seul.",
+    "Un créneau privé de quarante-cinq minutes.",
     "Un mot de votre concierge pour confirmer ?"
   ].filter((l) => l !== null).join("\n");
 }
