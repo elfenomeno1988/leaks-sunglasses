@@ -61,7 +61,7 @@ function renderAccessories() {
   root.innerHTML = accessories.map((item) => {
     const action = item.purchasable
       ? `<a class="card-buy" data-order-link data-product-id="${item.id}" data-variant-id="${item.variantId}" href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
-      : `<a class="card-buy" data-wa href="#" target="_blank" rel="noopener">Écrire au concierge</a>`;
+      : `<a class="card-buy" data-wa href="https://wa.me/2250173891404?text=Bonjour%20LEAKS%2C%20j%27aimerais%20des%20renseignements%20sur%20le%20Drop%20004." target="_blank" rel="noopener">Écrire au concierge</a>`;
     const visual = item.image
       ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
       : `<span class="accessory-placeholder">LEAKS<br>Travel Case</span>`;

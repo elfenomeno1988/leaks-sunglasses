@@ -190,8 +190,9 @@ test("notification queue stores approved Meta template data", async () => {
 });
 
 test("booking response distinguishes automatic queue from WhatsApp handoff", () => {
-  assert.equal(bookingWhatsAppDelivery(true), "queued");
-  assert.equal(bookingWhatsAppDelivery(false), "handoff");
+  assert.equal(bookingWhatsAppDelivery(true, true), "queued");
+  assert.equal(bookingWhatsAppDelivery(true, false), "handoff");
+  assert.equal(bookingWhatsAppDelivery(false, true), "handoff");
 });
 
 test("all delayed WhatsApp updates have approved-template payloads", () => {

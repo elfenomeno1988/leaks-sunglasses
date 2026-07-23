@@ -17,8 +17,8 @@ export function verifyMetaSignature(secret, rawBody, signature) {
   return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(match[1], "hex"));
 }
 
-export function bookingWhatsAppDelivery(templateApproved) {
-  return templateApproved ? "queued" : "handoff";
+export function bookingWhatsAppDelivery(cloudEnabled, templateConfigured) {
+  return cloudEnabled && templateConfigured ? "queued" : "handoff";
 }
 
 export async function storefrontRoutes(app, deps) {
@@ -105,11 +105,11 @@ export async function storefrontRoutes(app, deps) {
       phone: row.customer_phone,
       note: row.customer_note || ""
     };
-    const bookingTemplateApproved = Boolean(
-      whatsapp.enabled &&
-      config.WHATSAPP_TEMPLATE_BOOKING &&
-      await whatsapp.isTemplateApproved?.(config.WHATSAPP_TEMPLATE_BOOKING)
-    );
+    /* Un contrôle de statut Meta indisponible ne doit jamais renvoyer le
+       client vers un envoi manuel. Dès que Cloud + le modèle sont configurés,
+       la confirmation entre dans l'outbox persistante et sera rejouée jusqu'à
+       sa livraison. Le worker reste l'autorité sur le résultat réel. */
+    const bookingTemplateConfigured = Boolean(config.WHATSAPP_TEMPLATE_BOOKING);
     /* La confirmation et l'alerte passent par la file : envoi immédiat,
        reprises automatiques, jamais deux fois (dédoublonnage par référence). */
     await notify.enqueue("booking-confirmation", booking.phone, customerMessage(booking), booking.reference,
@@ -133,7 +133,7 @@ export async function storefrontRoutes(app, deps) {
       whatsapp: {
         /* La requête ne prétend plus que Meta a livré le message : le worker
            l'envoie juste après la réponse et conserve les reprises en base. */
-        delivery: bookingWhatsAppDelivery(bookingTemplateApproved),
+        delivery: bookingWhatsAppDelivery(whatsapp.enabled, bookingTemplateConfigured),
         conciergeNumber: config.WHATSAPP_NUMBER,
         handoffText: handoffMessage(booking)             // la carte, déjà écrite
       }
