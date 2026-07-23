@@ -95,7 +95,7 @@ clé secrète, jeton de vérification et abonnement de l'app au compte WhatsApp.
 
    - `leaks_confirmation_rdv` : confirmation client (date, heure, référence)
    - `leaks_confirmation_commande` : confirmation client (modèle, variation,
-     référence, numéro de série, mode de réception)
+     référence, mention « édition limitée », mode de réception)
    - `leaks_suivi_rdv` : confirmation manuelle et rappel de rendez-vous
    - `leaks_suivi_commande` : paire prête, expédiée ou livrée
    - `leaks_alerte_concierge` : copie privée envoyée au numéro du concierge

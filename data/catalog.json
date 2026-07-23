@@ -1,185 +1,199 @@
 {
   "currency": "XOF",
+  "collectionSize": 50,
   "products": [
     {
-      "id": "genesio",
-      "sku": "LK-00",
-      "name": "Genesio",
-      "price": 20000,
-      "description": "Carrée sculptée, contraste net et rendu studio.",
+      "id": "oryx",
+      "sku": "LK-06",
+      "name": "Oryx",
+      "tier": "classic",
+      "tierLabel": "LEAKS Classic",
+      "price": 19900,
+      "description": "Cadre graphique, contrastes francs et présence sculpturale.",
       "variants": [
-        {
-          "id": "deep-brown",
-          "name": "Deep Brown",
-          "image": "/assets/img/products/genesio/deep-brown/front.png"
-        },
-        {
-          "id": "gold",
-          "name": "Gold",
-          "image": "/assets/img/products/genesio/gold/front.png"
-        },
-        {
-          "id": "grey-dark",
-          "name": "Grey Dark",
-          "image": "/assets/img/products/genesio/grey-dark/front.png"
-        },
-        {
-          "id": "grey-light",
-          "name": "Grey Light",
-          "image": "/assets/img/products/genesio/grey-light/front.png"
-        }
-      ],
-      "editionSize": 50
-    },
-    {
-      "id": "genesis-honey",
-      "sku": "LK-01",
-      "name": "Genesis Honey",
-      "price": 20000,
-      "description": "Acétate miel, lumière chaude et profil plus doux.",
-      "variants": [
-        {
-          "id": "honey",
-          "name": "Honey",
-          "image": "/assets/img/products/genesis-honey/honey/front.png"
-        }
-      ],
-      "editionSize": 50
-    },
-    {
-      "id": "marco",
-      "sku": "LK-02",
-      "name": "Marco",
-      "price": 20000,
-      "description": "Rectangle brun-vert avec contrastes nets.",
-      "variants": [
-        {
-          "id": "brown-green",
-          "name": "Brown Green",
-          "image": "/assets/img/products/marco/brown-green/front.png"
-        },
-        {
-          "id": "olive",
-          "name": "Olive",
-          "image": "/assets/img/products/marco/olive/front.png"
-        }
-      ],
-      "editionSize": 50
+        { "id": "black-and-white", "name": "Black & White", "image": "/assets/img/products/oryx/black-and-white/front.png" },
+        { "id": "cheetah-brown", "name": "Cheetah Brown", "image": "/assets/img/products/oryx/cheetah-brown/front.png" },
+        { "id": "gradient-brown", "name": "Gradient Brown", "image": "/assets/img/products/oryx/gradient-brown/front.png" },
+        { "id": "gradient-purple", "name": "Gradient Purple", "image": "/assets/img/products/oryx/gradient-purple/front.png" }
+      ]
     },
     {
       "id": "meral",
       "sku": "LK-03",
       "name": "Meral",
-      "price": 20000,
-      "description": "Noir profond, ligne compacte et tenue sèche.",
+      "tier": "classic",
+      "tierLabel": "LEAKS Classic",
+      "price": 19900,
+      "description": "Noir profond, ligne compacte et tenue nette.",
       "variants": [
-        {
-          "id": "black",
-          "name": "Black",
-          "image": "/assets/img/products/meral/black/front.png"
-        }
-      ],
-      "editionSize": 50
+        { "id": "black", "name": "Black", "image": "/assets/img/products/meral/black/front.png" }
+      ]
+    },
+    {
+      "id": "lisa",
+      "sku": "LK-10",
+      "name": "Lisa",
+      "tier": "classic",
+      "tierLabel": "LEAKS Classic",
+      "price": 19900,
+      "description": "Ovale étirée, profil fin et allure graphique.",
+      "variants": [
+        { "id": "original", "name": "Silver Smoke", "image": "/assets/img/products/lisa/original/front.png" }
+      ]
+    },
+    {
+      "id": "square",
+      "sku": "LK-11",
+      "name": "Square",
+      "tier": "classic",
+      "tierLabel": "LEAKS Classic",
+      "price": 19900,
+      "description": "Carrée architecturale, pont métal et verres teintés.",
+      "variants": [
+        { "id": "black-green", "name": "Black Green", "image": "/assets/img/products/square/black-green/front.png" },
+        { "id": "black-grey", "name": "Black Grey", "image": "/assets/img/products/square/black-grey/front.png" }
+      ]
+    },
+    {
+      "id": "genesis-honey",
+      "sku": "LK-01",
+      "name": "Genesis",
+      "tier": "premium",
+      "tierLabel": "LEAKS Premium",
+      "price": 24900,
+      "description": "Browline cristal, pont métal et lumière douce.",
+      "variants": [
+        { "id": "crystal-clear", "name": "Crystal Clear", "image": "/assets/img/products/genesis-honey/crystal-clear/front.png" },
+        { "id": "honey", "name": "Honey Brown", "image": "/assets/img/products/genesis-honey/honey/front.png" }
+      ]
+    },
+    {
+      "id": "genesio",
+      "sku": "LK-00",
+      "name": "Genesio",
+      "tier": "premium",
+      "tierLabel": "LEAKS Premium",
+      "price": 24900,
+      "description": "Carrée sculptée, contraste net et rendu studio.",
+      "variants": [
+        { "id": "deep-brown", "name": "Deep Brown", "image": "/assets/img/products/genesio/deep-brown/front.png" },
+        { "id": "gold", "name": "Gold", "image": "/assets/img/products/genesio/gold/front.png" },
+        { "id": "grey-dark", "name": "Grey Dark", "image": "/assets/img/products/genesio/grey-dark/front.png" },
+        { "id": "grey-light", "name": "Grey Light", "image": "/assets/img/products/genesio/grey-light/front.png" }
+      ]
+    },
+    {
+      "id": "luther-clear",
+      "sku": "LK-07",
+      "name": "Luther Clear",
+      "tier": "premium",
+      "tierLabel": "LEAKS Premium",
+      "price": 24900,
+      "description": "Browline arrondie, acétate transparent et contraste dense.",
+      "variants": [
+        { "id": "black", "name": "Black", "image": "/assets/img/products/luther-clear/black/front.png" },
+        { "id": "brown-coffee", "name": "Brown Coffee", "image": "/assets/img/products/luther-clear/brown-coffee/front.png" },
+        { "id": "brown", "name": "Brown", "image": "/assets/img/products/luther-clear/brown/front.png" },
+        { "id": "blue-grey", "name": "Blue Grey", "image": "/assets/img/products/luther-clear/blue-grey/front.png" },
+        { "id": "purple-clear", "name": "Purple Clear", "image": "/assets/img/products/luther-clear/purple-clear/front.png" },
+        { "id": "green", "name": "Green", "image": "/assets/img/products/luther-clear/green/front.png" }
+      ]
+    },
+    {
+      "id": "armando",
+      "sku": "LK-08",
+      "name": "Armando",
+      "tier": "premium",
+      "tierLabel": "LEAKS Premium",
+      "price": 24900,
+      "description": "Acétate géométrique, volumes facettés et verres dégradés.",
+      "variants": [
+        { "id": "brown-green", "name": "Brown Green", "image": "/assets/img/products/armando/brown-green/front.png" },
+        { "id": "blue-green", "name": "Blue Green", "image": "/assets/img/products/armando/blue-green/front.png" }
+      ]
     },
     {
       "id": "nano",
       "sku": "LK-04",
       "name": "Nano",
-      "price": 20000,
-      "description": "Format micro, verres photochromiques Light Control.",
+      "tier": "premium",
+      "tierLabel": "LEAKS Premium",
+      "price": 24900,
+      "description": "Format micro et verres photochromiques Light Control.",
       "variants": [
-        {
-          "id": "grey-black",
-          "name": "Grey Black",
-          "image": "/assets/img/products/nano/grey-black/front.png"
-        },
-        {
-          "id": "honey-brown",
-          "name": "Honey Brown",
-          "image": "/assets/img/products/nano/honey-brown/front.png"
-        }
-      ],
-      "editionSize": 50
+        { "id": "grey-black", "name": "Grey Black", "image": "/assets/img/products/nano/grey-black/front.png" },
+        { "id": "honey-brown", "name": "Honey Brown", "image": "/assets/img/products/nano/honey-brown/front.png" }
+      ]
+    },
+    {
+      "id": "marco",
+      "sku": "LK-02",
+      "name": "Marco",
+      "tier": "exclusive",
+      "tierLabel": "LEAKS Exclusive",
+      "price": 34900,
+      "description": "Rectangle brun-vert, finitions profondes et contraste affirmé.",
+      "variants": [
+        { "id": "brown-green", "name": "Brown Green", "image": "/assets/img/products/marco/brown-green/front.png" },
+        { "id": "olive", "name": "Olive", "image": "/assets/img/products/marco/olive/front.png" }
+      ]
+    },
+    {
+      "id": "silva",
+      "sku": "LK-09",
+      "name": "Silva",
+      "tier": "exclusive",
+      "tierLabel": "LEAKS Exclusive",
+      "price": 34900,
+      "description": "Rimless sculptée, monture bijou et ligne aérienne.",
+      "variants": [
+        { "id": "black-gold", "name": "Black Gold", "image": "/assets/img/products/silva/black-gold/front.png" },
+        { "id": "chocolat", "name": "Chocolat", "image": "/assets/img/products/silva/chocolat/front.png" },
+        { "id": "blue-grey", "name": "Blue Grey", "image": "/assets/img/products/silva/blue-grey/front.png" }
+      ]
     },
     {
       "id": "octa",
       "sku": "LK-05",
       "name": "Octa",
-      "price": 20000,
+      "tier": "exclusive",
+      "tierLabel": "LEAKS Exclusive",
+      "price": 34900,
       "description": "Huit angles, palette vive et finitions translucides.",
       "variants": [
-        {
-          "id": "white-champagne",
-          "name": "White Champagne",
-          "image": "/assets/img/products/octa/white-champagne/front.png"
-        },
-        {
-          "id": "clear-blue",
-          "name": "Clear Blue",
-          "image": "/assets/img/products/octa/clear-blue/front.png"
-        },
-        {
-          "id": "clear-black",
-          "name": "Clear Black",
-          "image": "/assets/img/products/octa/clear-black/front.png"
-        },
-        {
-          "id": "clear-pink",
-          "name": "Clear Pink",
-          "image": "/assets/img/products/octa/clear-pink/front.png"
-        },
-        {
-          "id": "clear-red",
-          "name": "Clear Red",
-          "image": "/assets/img/products/octa/clear-red/front.png"
-        },
-        {
-          "id": "pink-nude",
-          "name": "Pink Nude",
-          "image": "/assets/img/products/octa/pink-nude/front.png"
-        },
-        {
-          "id": "blue-gradient",
-          "name": "Blue Gradient",
-          "image": "/assets/img/products/octa/blue-gradient/three-quarter.png"
-        },
-        {
-          "id": "white-honey",
-          "name": "White Honey",
-          "image": "/assets/img/products/octa/white-honey/front.png"
-        }
-      ],
-      "editionSize": 50
+        { "id": "white-champagne", "name": "White Champagne", "image": "/assets/img/products/octa/white-champagne/front.png" },
+        { "id": "clear-blue", "name": "Clear Blue", "image": "/assets/img/products/octa/clear-blue/front.png" },
+        { "id": "clear-black", "name": "Clear Black", "image": "/assets/img/products/octa/clear-black/front.png" },
+        { "id": "clear-pink", "name": "Clear Pink", "image": "/assets/img/products/octa/clear-pink/front.png" },
+        { "id": "clear-red", "name": "Clear Red", "image": "/assets/img/products/octa/clear-red/front.png" },
+        { "id": "pink-nude", "name": "Pink Nude", "image": "/assets/img/products/octa/pink-nude/front.png" },
+        { "id": "blue-gradient", "name": "Blue Gradient", "image": "/assets/img/products/octa/blue-gradient/three-quarter.png" },
+        { "id": "white-honey", "name": "White Honey", "image": "/assets/img/products/octa/white-honey/front.png" }
+      ]
     },
     {
-      "id": "oryx",
-      "sku": "LK-06",
-      "name": "Oryx",
-      "price": 20000,
-      "description": "Cadres graphiques, jeux de matières et de contraste.",
+      "id": "travel-pouch",
+      "sku": "ACC-01",
+      "name": "LEAKS Travel Pouch",
+      "tier": "accessory",
+      "tierLabel": "More LEAKS — Accessories",
+      "price": 5900,
+      "description": "Pochette argentée de transport matelassée, idéale pour protéger votre paire lors de vos déplacements quotidiens.",
       "variants": [
-        {
-          "id": "black-and-white",
-          "name": "Black & White",
-          "image": "/assets/img/products/oryx/black-and-white/front.png"
-        },
-        {
-          "id": "cheetah-brown",
-          "name": "Cheetah Brown",
-          "image": "/assets/img/products/oryx/cheetah-brown/front.png"
-        },
-        {
-          "id": "gradient-brown",
-          "name": "Gradient Brown",
-          "image": "/assets/img/products/oryx/gradient-brown/front.png"
-        },
-        {
-          "id": "gradient-purple",
-          "name": "Gradient Purple",
-          "image": "/assets/img/products/oryx/gradient-purple/front.png"
-        }
-      ],
-      "editionSize": 50
+        { "id": "silver", "name": "Silver", "image": "/assets/img/accessories/travel-pouch/silver/standing.png" }
+      ]
+    },
+    {
+      "id": "eyewear-case",
+      "sku": "ACC-02",
+      "name": "LEAKS Eyewear Case",
+      "tier": "accessory",
+      "tierLabel": "More LEAKS — Accessories",
+      "price": 9900,
+      "description": "Coffret de rangement premium conçu pour protéger, organiser et transporter jusqu'à trois paires de lunettes.",
+      "variants": [
+        { "id": "standard", "name": "Standard", "image": "/assets/img/brand/eye.png" }
+      ]
     }
   ]
 }

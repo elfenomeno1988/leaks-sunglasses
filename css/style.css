@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   LEAKS SUNGLASSES — Drop 001
+   LEAKS SUNGLASSES — Drop 004
    Minimal : blanc, filets fins, chrome en touches
    ══════════════════════════════════════════════════════════ */
 
@@ -11,8 +11,8 @@
   --line: rgba(16, 16, 19, 0.12);
   --line-strong: rgba(16, 16, 19, 0.7);
   --line-w: rgba(255, 255, 255, 0.16);
-  --font-tech: "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-tech: "Michroma", "Eurostile", sans-serif;
+  --font-body: "Inter", -apple-system, "Helvetica Neue", sans-serif;
   --pad: clamp(20px, 4.5vw, 72px);
   --nav-h: 68px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);

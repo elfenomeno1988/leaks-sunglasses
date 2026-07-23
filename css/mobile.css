@@ -13,8 +13,8 @@
   --hairline-strong: #c9c8c0;
   --white: #ffffff;
 
-  --sans: "Space Grotesk", system-ui, sans-serif;
-  --serif: "Space Grotesk", system-ui, sans-serif;
+  --sans: "Inter", -apple-system, "Helvetica Neue", sans-serif;
+  --serif: "Michroma", "Eurostile", sans-serif;
 
   --ah: 52px;                                   /* en-tête */
   --tb: calc(56px + env(safe-area-inset-bottom)); /* barre d'onglets */
@@ -45,10 +45,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
 ::selection { background: var(--ink); color: var(--paper); }
 
 .tag {
-
-  font-size: 12px;
-
-
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--mute);
 }
 
@@ -109,8 +109,8 @@ button { font: inherit; color: inherit; background: none; border: none; }
   font-family: var(--serif);
   font-size: 28px;
   font-weight: 400;
-
-
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 .sc-head .tag { display: block; margin-top: 5px; }
 
@@ -121,10 +121,10 @@ button { font: inherit; color: inherit; background: none; border: none; }
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-size: 14.5px;
+  font-size: 10px;
   font-weight: 600;
-
-
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   padding: 16px 22px;
   border: 1px solid var(--ink);
   transition: transform 0.15s var(--ease), opacity 0.2s;
@@ -146,7 +146,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .drop-logo { width: min(300px, 78%); margin: 22px 0 14px; }
 
-.drop-line { font-family: var(--serif); font-size: 19px; color: var(--mute); }
+.drop-line { font-family: var(--serif); font-size: 13px; line-height: 1.6; letter-spacing: 0.05em; text-transform: uppercase; color: var(--mute); }
 
 .count {
   display: flex;
@@ -155,7 +155,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
   font-variant-numeric: tabular-nums;
 }
 .count b { display: block; font-size: 27px; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
-.count i { display: block; font-style: normal; font-size: 13.5px; color: var(--mute); margin-top: 6px; }
+.count i { display: block; font-style: normal; font-size: 8px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); margin-top: 6px; }
 
 .drop-cta {
   display: grid;
@@ -181,9 +181,25 @@ button { font: inherit; color: inherit; background: none; border: none; }
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.45));
 }
 
+.m-genesis { padding: 54px 16px 26px; background: #f4f4f1; }
+.m-genesis h2 { font-family: var(--serif); font-size: 20px; font-weight: 400; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 20px; }
+.m-genesis > img, .m-genesis div img { width: 100%; border: 1px solid var(--hairline); background: var(--white); }
+.m-genesis div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
 /* ── Écran · Collection ─────────────────────────────────────── */
 
 .feed { display: grid; gap: 14px; padding: 0 16px 24px; }
+
+.feed-tier {
+  margin: 26px 0 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline-strong);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
 .f-card {
   border: 1px solid var(--hairline);
@@ -208,10 +224,12 @@ button { font: inherit; color: inherit; background: none; border: none; }
   border-top: 1px solid var(--hairline);
 }
 
-.f-name { font-size: 15px; font-weight: 500; }
+.f-name { font-family: var(--serif); font-size: 10px; font-weight: 400; letter-spacing: 0.03em; text-transform: uppercase; }
 .f-name .idx { color: var(--mute); font-weight: 500; margin-right: 6px; font-variant-numeric: tabular-nums; }
 .f-sub { display: block; margin-top: 2px; font-size: 13.5px; color: var(--mute); }
 .f-price { font-size: 12.5px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.accessory-fallback { font-family: var(--serif); font-size: 15px; line-height: 1.7; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; color: var(--mute); }
+.accessory-feed .f-sub { max-width: 28ch; white-space: normal; }
 
 /* ── Écran · Modèle ─────────────────────────────────────────── */
 
@@ -255,7 +273,7 @@ button { font: inherit; color: inherit; background: none; border: none; }
 
 .m-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 
-.m-row h1 { font-family: var(--serif); font-size: 23px; font-weight: 400; }
+.m-row h1 { font-family: var(--serif); font-size: 18px; font-weight: 400; letter-spacing: 0.03em; text-transform: uppercase; }
 
 .m-price { font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 

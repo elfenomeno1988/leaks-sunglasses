@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   LEAKS SUNGLASSES — Drop 001
+   LEAKS SUNGLASSES — Drop 004
    Compte à rebours, visionneuse, réservation & paiement WhatsApp
    ══════════════════════════════════════════════════════════ */
 
@@ -94,7 +94,7 @@ setInterval(updateCountdown, 1000);
 
 const waFloat = $("#wa-float");
 const genericWaLink = () =>
-  `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 001.`)}`;
+  `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 004.`)}`;
 
 waFloat.href = genericWaLink();
 $("#footer-wa").href = genericWaLink();
@@ -325,7 +325,7 @@ function validate() {
 function buildWhatsAppMessage() {
   const svc = SERVICES[state.service];
   const lines = [
-    `Bonjour ${CONFIG.brandName} ✦ Demande de rendez-vous — Drop 001`,
+    `Bonjour ${CONFIG.brandName} ✦ Demande de rendez-vous — Drop 004`,
     "",
     `— Prestation : ${svc.label} (${svc.duration})`,
     state.model ? `— Modèle : ${state.model}` : "— Modèle : à décider sur place",

@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, createHmac } from "node:crypto";
+import { access, readFile } from "node:fs/promises";
+import path from "node:path";
+import vm from "node:vm";
+import { fileURLToPath } from "node:url";
 import { loadCatalog, resolveLineItem } from "../server/catalog.mjs";
 import { createPayDunyaClient } from "../server/payments/paydunya.mjs";
 import { checkoutSchema, createOrder, publicOrder } from "../server/services/orders.mjs";
@@ -27,14 +31,55 @@ const config = {
   isProduction: false, publicSiteUrl: "http://localhost:3000"
 };
 
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
 test("catalogue resolves a server-priced variant", async () => {
   const catalog = await loadCatalog();
   const line = resolveLineItem(catalog, "genesio", "deep-brown", 2);
-  assert.equal(line.product.price, 20000);
+  assert.equal(line.product.price, 24900);
   assert.equal(line.variant.name, "Deep Brown");
-  assert.equal(line.subtotal, 40000);
+  assert.equal(line.subtotal, 49800);
   assert.throws(() => resolveLineItem(catalog, "genesio", "inconnu", 1));
   assert.throws(() => resolveLineItem(catalog, "genesio", "deep-brown", 4));
+});
+
+test("browser and server catalogues stay aligned and reference real assets", async () => {
+  const serverCatalog = await loadCatalog();
+  const source = await readFile(path.join(projectRoot, "js/catalog-data.js"), "utf8");
+  const context = { window: {} };
+  vm.runInNewContext(source, context, { filename: "js/catalog-data.js" });
+
+  const browserProducts = [
+    ...context.window.LEAKS_MODELS.map((model) => ({
+      id: model.id, sku: model.sku, name: model.name, tier: model.tier,
+      price: model.price,
+      variants: model.colors.map((variant) => ({ id: variant.variantId, name: variant.label, image: variant.image })),
+      images: model.colors.flatMap((variant) => variant.views.map((view) => view.src))
+    })),
+    ...context.window.LEAKS_ACCESSORIES.map((item) => ({
+      id: item.id, sku: item.sku, name: item.name, tier: "accessory",
+      price: item.price,
+      variants: [{ id: item.variantId, name: item.variantLabel, image: item.image }],
+      images: item.image ? [item.image] : []
+    }))
+  ];
+
+  assert.equal(browserProducts.length, serverCatalog.list.length);
+  for (const browserProduct of browserProducts) {
+    const serverProduct = serverCatalog.products.get(browserProduct.id);
+    assert.ok(serverProduct, `produit serveur absent : ${browserProduct.id}`);
+    assert.deepEqual(
+      { sku: browserProduct.sku, name: browserProduct.name, tier: browserProduct.tier, price: browserProduct.price },
+      { sku: serverProduct.sku, name: serverProduct.name, tier: serverProduct.tier, price: serverProduct.price }
+    );
+    assert.equal(
+      JSON.stringify(browserProduct.variants.map(({ id, name }) => ({ id, name }))),
+      JSON.stringify(serverProduct.variants.map(({ id, name }) => ({ id, name })))
+    );
+    for (const image of [...browserProduct.images, ...serverProduct.variants.map((variant) => variant.image)].filter(Boolean)) {
+      await access(path.join(projectRoot, image.replace(/^\//, "")));
+    }
+  }
 });
 
 test("checkout validates Côte d'Ivoire contact and delivery address", () => {
@@ -113,12 +158,12 @@ test("notification queue stores approved Meta template data", async () => {
   });
   await center.enqueue("order-paid", " +225 07 00 00 00 00 ", "Commande confirmée", "LK-TEST", {
     name: "leaks_confirmation_commande",
-    parameters: ["LUNETTES 01", "Noir", "LK-TEST", "01 / 100", "Retrait au studio"]
+    parameters: ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Retrait au studio"]
   });
   assert.match(calls[0][0], /template_name/);
   assert.equal(calls[0][1][1], "2250700000000");
   assert.equal(calls[0][1][4], "leaks_confirmation_commande");
-  assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "01 / 100", "Retrait au studio"]);
+  assert.deepEqual(JSON.parse(calls[0][1][5]), ["LUNETTES 01", "Noir", "LK-TEST", "Édition limitée", "Retrait au studio"]);
 });
 
 test("booking response distinguishes automatic queue from WhatsApp handoff", () => {
@@ -207,18 +252,22 @@ test("order creation persists server totals before creating the payment invoice"
   const db = {
     async query(sql, params) {
       calls.push({ sql, params });
+      if (sql.includes("from orders") && sql.includes("as sold")) {
+        return { rows: [{ sold: 0, reserved: 0 }] };
+      }
       if (sql.includes("insert into orders")) return { rows: [{ id: "order-id", reference: params[0], tracking_token: params[1], status: "pending_payment", payment_status: "pending", payment_method: params[2], product_name: params[6], product_sku: params[5], variant_name: params[8], quantity: params[10], total_amount: params[13], currency: "XOF", delivery_method: params[11], created_at: new Date() }] };
-      return { rows: [{ id: "order-id", reference: calls[0].params[0], tracking_token: calls[0].params[1], status: "pending_payment", payment_status: "pending", payment_method: "wave", product_name: "Genesio", product_sku: "LK-00", variant_name: "Original", quantity: 1, total_amount: 22000, currency: "XOF", delivery_method: "abidjan_delivery", created_at: new Date(), provider_token: "test_invoice" }] };
+      const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
+      return { rows: [{ id: "order-id", reference: insertCall.params[0], tracking_token: insertCall.params[1], status: "pending_payment", payment_status: "pending", payment_method: "wave", product_name: "Genesio", product_sku: "LK-00", variant_name: "Deep Brown", quantity: 1, total_amount: 26900, currency: "XOF", delivery_method: "abidjan_delivery", created_at: new Date(), provider_token: "test_invoice" }] };
     }
   };
-  const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 22000); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
+  const paydunya = { channelsFor: () => ["wave-ci"], createInvoice: async (payload) => { assert.equal(payload.invoice.total_amount, 26900); return { response_code: "00", response_text: "https://pay.test/invoice", token: "test_invoice" }; } };
   const result = await createOrder({ db, catalog, config, paydunya, input: { productId: "genesio", variantId: "deep-brown", quantity: 1, customerName: "Awa Kouassi", customerEmail: "awa@example.com", customerPhone: "+2250700000000", deliveryMethod: "abidjan_delivery", deliveryAddress: "Cocody Angré, Abidjan", paymentMethod: "wave" } });
   assert.equal(result.redirectUrl, "https://pay.test/invoice");
   /* La vérification de stock passe d'abord ; on cible l'insert par son SQL. */
   const insertCall = calls.find((call) => call.sql.includes("insert into orders"));
   assert.ok(insertCall, "insert into orders attendu");
-  assert.equal(insertCall.params[13], 22000);
-  assert.equal(insertCall.params[19], 50); // edition_size figée sur la commande
+  assert.equal(insertCall.params[13], 26900);
+  assert.equal(insertCall.params[19], null); // aucun numéro de série ou quota par coloris
 });
 
 test("Fastify serves commerce pages and the public catalogue", async () => {
@@ -233,7 +282,8 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   const app = await buildApp({ config, db, catalog, paydunya });
   const catalogResponse = await app.inject({ method: "GET", url: "/api/catalog" });
   assert.equal(catalogResponse.statusCode, 200);
-  assert.equal(catalogResponse.json().products.length, 7);
+  assert.equal(catalogResponse.json().products.length, 14);
+  assert.equal(catalogResponse.json().collectionSize, 50);
   assert.deepEqual(catalogResponse.json().paymentMethods, ["wave", "mobile_money", "card", "whatsapp_wave"]);
   const galleryRedirect = await app.inject({ method: "GET", url: "/gallery" });
   assert.equal(galleryRedirect.statusCode, 302);
@@ -249,7 +299,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.match(homeResponse.body, /LEAKS Sunglasses/);
   const appResponse = await app.inject({ method: "GET", url: "/m.html" });
   assert.equal(appResponse.statusCode, 200);
-  assert.match(appResponse.body, /Réserver un essayage/);
+  assert.match(appResponse.body, /Réserver mon essayage/);
   const privacyResponse = await app.inject({ method: "GET", url: "/privacy.html" });
   assert.equal(privacyResponse.statusCode, 200);
   assert.match(privacyResponse.body, /Politique de confidentialité/);

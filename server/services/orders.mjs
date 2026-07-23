@@ -34,25 +34,24 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
   const values = checkoutSchema.parse(input);
   const line = resolveLineItem(catalog, values.productId, values.variantId, values.quantity);
 
-  /* Édition limitée : les payées comptent, plus les paiements en cours
-     (réservés 30 minutes). Jamais de 51e paire sur une édition de 50. */
-  const editionSize = Number(line.product.editionSize) || null;
-  if (editionSize) {
+  /* Le retour client précise 50 exemplaires au total pour le drop,
+     et non 50 par modèle ou par coloris. */
+  const collectionSize = Number(catalog.collectionSize) || null;
+  if (collectionSize && line.product.tier !== "accessory") {
     const counts = await db.query(
       `select
          coalesce(sum(quantity) filter (where payment_status = 'paid'), 0)::int as sold,
          coalesce(sum(quantity) filter (where payment_status = 'pending'
            and created_at > now() - interval '30 minutes'), 0)::int as reserved
        from orders
-       where product_id = $1 and variant_id = $2 and status <> 'cancelled'`,
-      [line.product.id, line.variant.id]
+       where status <> 'cancelled' and product_sku like 'LK-%'`
     );
     const row = counts.rows[0] || {};
-    const remaining = editionSize - Number(row.sold || 0) - Number(row.reserved || 0);
+    const remaining = collectionSize - Number(row.sold || 0) - Number(row.reserved || 0);
     if (line.quantity > remaining) {
       const message = remaining > 0
-        ? `Édition presque épuisée — il reste ${remaining} exemplaire${remaining > 1 ? "s" : ""} de ce coloris.`
-        : `Ce coloris est épuisé — édition limitée à ${editionSize} exemplaires.`;
+        ? `Édition presque épuisée — il reste ${remaining} exemplaire${remaining > 1 ? "s" : ""} pour l'ensemble du drop.`
+        : `Le Drop 004 est épuisé — édition limitée à ${collectionSize} exemplaires au total.`;
       throw Object.assign(new Error(message), { statusCode: 409 });
     }
   }
@@ -84,7 +83,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
       line.product.id, line.product.sku, line.product.name, line.variant.id, line.variant.name,
       line.product.price, line.quantity, values.deliveryMethod, deliveryFee, totalAmount,
       values.customerName, values.customerEmail, phone, values.deliveryAddress || null, values.customerNote || null,
-      Number(line.product.editionSize) || null
+      null
     ]
   );
   const order = inserted.rows[0];
@@ -125,7 +124,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
     },
     store: {
       name: "LEAKS Sunglasses",
-      tagline: "Éditions limitées, numérotées, jamais rééditées.",
+      tagline: "Modèles premium et édition limitée.",
       postal_address: "Abidjan, Côte d'Ivoire",
       phone: config.WHATSAPP_NUMBER,
       logo_url: `${config.publicSiteUrl}/assets/img/brand/logo-full.png`,
@@ -167,8 +166,6 @@ export function publicOrder(order) {
     currency: order.currency,
     deliveryMethod: order.delivery_method,
     createdAt: order.created_at,
-    receiptUrl: order.receipt_url,
-    serialNumber: order.serial_number ?? null,
-    editionSize: order.edition_size ?? null
+    receiptUrl: order.receipt_url
   };
 }

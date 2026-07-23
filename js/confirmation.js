@@ -23,9 +23,7 @@ async function refresh() {
     document.querySelector("#status-title").textContent = paid ? "Paiement confirmé." : order.paymentStatus === "cancelled" ? "Paiement annulé." : "Paiement en attente.";
     document.querySelector("#status-copy").textContent = paid ? "Votre paire est réservée. Nous préparons maintenant votre commande." : "Le statut se mettra à jour automatiquement dès validation par le service de paiement.";
     document.querySelector("#status-product").textContent = `${order.product} × ${order.quantity}`;
-    document.querySelector("#status-variant").textContent = order.serialNumber
-      ? `${order.variant} — Nº ${String(order.serialNumber).padStart(2, "0")}${order.editionSize ? ` / ${order.editionSize}` : ""}`
-      : order.variant;
+    document.querySelector("#status-variant").textContent = order.variant;
     document.querySelector("#status-total").textContent = money(order.totalAmount);
     document.querySelector("#status-delivery").textContent = order.deliveryMethod === "pickup" ? "Retrait studio" : "Livraison Abidjan";
     document.querySelector("#status-details").hidden = false;

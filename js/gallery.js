@@ -11,6 +11,7 @@ const viewTagNode = document.querySelector("[data-gallery-view-tag]");
 const modelNode = document.querySelector("[data-gallery-model]");
 const colorNode = document.querySelector("[data-gallery-color]");
 const skuNode = document.querySelector("[data-gallery-sku]");
+const tierNode = document.querySelector("[data-gallery-tier]");
 const priceNode = document.querySelector("[data-gallery-price]");
 const swatchesNode = document.querySelector("[data-gallery-swatches]");
 const buyNode = document.querySelector("[data-gallery-buy]");
@@ -108,12 +109,13 @@ function renderViews() {
 function render() {
   if (!currentModel || !currentVariant) return;
 
-  titleNode.textContent = `${currentModel.name}`;
+  titleNode.textContent = `LEAKS — ${currentModel.name}`;
   copyNode.textContent = `${currentModel.description} Un modèle, plusieurs coloris.`;
   renderViews();
   modelNode.textContent = `${currentModel.name} · ${currentModel.sku}`;
   colorNode.textContent = currentVariant.label;
   skuNode.textContent = currentModel.sku;
+  if (tierNode) tierNode.textContent = currentModel.tierLabel || "LEAKS";
   priceNode.textContent = money(currentModel.price);
   buyNode.href = `/checkout.html?product=${encodeURIComponent(currentModel.id)}&variant=${encodeURIComponent(currentVariant.variantId)}`;
   updateWhatsAppLinks();

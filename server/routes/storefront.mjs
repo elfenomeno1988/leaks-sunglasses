@@ -25,29 +25,30 @@ export async function storefrontRoutes(app, deps) {
   const { db, catalog, config, paydunya, whatsapp, notify } = deps;
 
   app.get("/api/catalog", async () => {
-    /* Restant par coloris — les payées décomptent l'édition. */
-    let sold = new Map();
+    /* Les 50 exemplaires concernent toute la collection, pas chaque coloris. */
+    let collectionSold = null;
     try {
       const r = await db.query(
-        `select product_id, variant_id, coalesce(sum(quantity), 0)::int as sold
+        `select coalesce(sum(quantity), 0)::int as sold
          from orders where payment_status = 'paid' and status <> 'cancelled'
-         group by product_id, variant_id`
+         and product_sku like 'LK-%'`
       );
-      sold = new Map(r.rows.map((x) => [`${x.product_id}:${x.variant_id}`, Number(x.sold)]));
+      collectionSold = Number(r.rows[0]?.sold || 0);
     } catch { /* base indisponible : on sert le catalogue sans stock */ }
 
     const products = catalog.list.map((p) => ({
       ...p,
       variants: p.variants.map((v) => ({
         ...v,
-        remaining: p.editionSize
-          ? Math.max(0, p.editionSize - (sold.get(`${p.id}:${v.id}`) || 0))
-          : null
+        remaining: null
       }))
     }));
 
     return {
       currency: catalog.currency,
+      collectionSize: catalog.collectionSize || null,
+      collectionRemaining: collectionSold == null || !catalog.collectionSize
+        ? null : Math.max(0, Number(catalog.collectionSize) - collectionSold),
       deliveryFees: { pickup: 0, abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
       paymentMethods: config.paydunyaConfigured
         ? ["wave", "mobile_money", "card", "whatsapp_wave"]
@@ -229,27 +230,6 @@ export async function syncPayment(db, provider, hooks = {}) {
 
   const order = result.rows[0];
   if (order && mapped === "paid") {
-    /* Numéro de série : attribué une seule fois, au paiement. L'index
-       unique (produit, coloris, numéro) tranche les courses — on retente. */
-    if (order.serial_number == null) {
-      for (let attempt = 0; attempt < 4; attempt += 1) {
-        try {
-          const s = await db.query(
-            `update orders set serial_number = (
-               select coalesce(max(serial_number), 0) + 1 from orders
-               where product_id = $2 and variant_id = $3 and serial_number is not null)
-             where id = $1 and serial_number is null
-             returning serial_number`,
-            [order.id, order.product_id, order.variant_id]
-          );
-          order.serial_number = s.rows[0]?.serial_number ?? order.serial_number;
-          break;
-        } catch (error) {
-          if (error?.code !== "23505") break; // seule la collision d'index se rejoue
-        }
-      }
-    }
-
     /* WhatsApp automatique au client + au concierge — la file dédoublonne
        par référence : jamais deux messages pour un même paiement. */
     if (hooks.notify) {
@@ -259,9 +239,7 @@ export async function syncPayment(db, provider, hooks = {}) {
           order.product_name,
           order.variant_name,
           order.reference,
-          order.serial_number
-            ? `${String(order.serial_number).padStart(2, "0")}${order.edition_size ? ` / ${order.edition_size}` : ""}`
-            : "En cours d'attribution",
+          "Édition limitée",
           order.delivery_method === "pickup" ? "Retrait au studio" : "Livraison à Abidjan"
         ]
       } : null;

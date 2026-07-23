@@ -2,7 +2,7 @@ const form = document.querySelector("#checkout-form");
 const errorBox = document.querySelector("#checkout-error");
 const submit = document.querySelector("#checkout-submit");
 const params = new URLSearchParams(location.search);
-const productId = params.get("product") || "genesio";
+const productId = params.get("product") || "oryx";
 const requestedVariant = params.get("variant") || "";
 let product;
 let deliveryFee = 2000;
@@ -39,6 +39,13 @@ async function initialize() {
       if (fallback) fallback.checked = true;
     }
     product = catalog.products.find((entry) => entry.id === productId) || catalog.products[0];
+    if (product.tier === "accessory") {
+      [...$("#quantity").options].forEach((option, index) => {
+        option.textContent = `${index + 1} article${index ? "s" : ""}`;
+      });
+      $("#package-block").hidden = true;
+      $("#package-trust").hidden = true;
+    }
     const select = $("#variant");
     product.variants.forEach((variant) => {
       const soldOut = variant.remaining === 0;
@@ -52,7 +59,7 @@ async function initialize() {
     const firstAvailable = product.variants.find((variant) => variant.remaining !== 0) || product.variants[0];
     const requested = product.variants.find((variant) => variant.id === requestedVariant);
     select.value = requested && requested.remaining !== 0 ? requested.id : firstAvailable.id;
-    $("#product-name").textContent = `${product.name} — ${product.sku}`;
+    $("#product-name").textContent = `${product.name.startsWith("LEAKS") ? product.name : `LEAKS — ${product.name}`} · ${product.sku}`;
     $("#product-description").textContent = product.description;
     updateSummary();
   } catch (error) {

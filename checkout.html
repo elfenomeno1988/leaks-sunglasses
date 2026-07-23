@@ -8,8 +8,8 @@
   <link rel="icon" type="image/png" href="/assets/img/brand/eye.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/epure.css?v=6">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Michroma&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/epure.css?v=8">
 </head>
 <body>
 
@@ -27,9 +27,7 @@
       <section>
         <header style="margin-bottom:clamp(24px,3vw,40px)">
           <span class="tag">Commande — trois gestes</span>
-          <h1 style="font-size:clamp(20px,2.2vw,26px);font-weight:500;line-height:1.25;margin-top:12px">
-            La paire, <em style="font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;letter-spacing:0">puis plus rien.</em>
-          </h1>
+          <h1 class="co-title">La paire, puis plus rien.</h1>
         </header>
 
         <form id="checkout-form" novalidate>
@@ -78,6 +76,9 @@
                 <span><strong>Livraison à Abidjan</strong><small id="delivery-fee-label">Frais calculés</small></span>
               </label>
             </div>
+            <p class="co-worldwide">Livraison hors d'Abidjan et dans le monde entier :
+              <a href="https://wa.me/2250173891404?text=Bonjour%20LEAKS%2C%20je%20souhaite%20une%20livraison%20hors%20Abidjan." target="_blank" rel="noopener">demander les frais au concierge ↗</a>
+            </p>
 
             <div class="co-fields" id="address-wrap" style="margin-top:14px" hidden>
               <label>Adresse de livraison
@@ -121,7 +122,7 @@
           <div class="co-error" id="checkout-error" role="alert" hidden></div>
 
           <button type="submit" class="btn btn-ink co-submit" id="checkout-submit">
-            <span>Continuer vers le paiement</span><span id="submit-total">20 000 F CFA</span>
+            <span>Continuer vers le paiement</span><span id="submit-total">19 900 F CFA</span>
           </button>
           <p class="co-legal">Commande confirmée après vérification du paiement.</p>
         </form>
@@ -129,21 +130,31 @@
 
       <aside class="co-card" aria-live="polite">
         <div class="co-figure">
-          <img id="product-image" src="/assets/img/products/genesio/deep-brown/front.png" alt="Monture sélectionnée">
+          <img id="product-image" src="/assets/img/products/oryx/black-and-white/front.png" alt="Monture sélectionnée">
         </div>
-        <span class="tag">Drop 001</span>
-        <h2 id="product-name">Genesio — LK-00</h2>
-        <p class="desc" id="product-description">Carrée sculptée, contraste net et rendu studio.</p>
+        <span class="tag">Drop 004</span>
+        <h2 id="product-name">LEAKS — Oryx · LK-06</h2>
+        <p class="desc" id="product-description">Cadre graphique, contrastes francs et présence sculpturale.</p>
         <dl class="co-lines">
           <div><dt>Coloris</dt><dd id="summary-variant">—</dd></div>
           <div><dt>Quantité</dt><dd id="summary-quantity">1</dd></div>
-          <div><dt>Sous-total</dt><dd id="summary-subtotal">20 000 F</dd></div>
+          <div><dt>Sous-total</dt><dd id="summary-subtotal">19 900 F</dd></div>
           <div><dt>Livraison</dt><dd id="summary-delivery">Gratuite</dd></div>
         </dl>
-        <div class="co-total"><span>Total</span><strong id="summary-total">20 000 F CFA</strong></div>
+        <div class="co-total"><span>Total</span><strong id="summary-total">19 900 F CFA</strong></div>
+        <div class="co-package" id="package-block">
+          <h3>Votre paire est accompagnée de :</h3>
+          <ul>
+            <li>Un étui rigide</li>
+            <li>Une boîte de présentation</li>
+            <li>Un chiffon microfibre</li>
+            <li>Un spray nettoyant 10 ml</li>
+            <li>Une carte privilège donnant droit à 15 % de réduction sur votre prochain achat.</li>
+          </ul>
+        </div>
         <ul class="co-trust">
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="1.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>Paiement vérifié par le serveur</li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 4.4 6v5.4c0 4.7 3.2 8.3 7.6 9.8 4.4-1.5 7.6-5.1 7.6-9.8V6Z"/></svg>Série numérotée — gravée dans la masse</li>
+          <li id="package-trust"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 4.4 6v5.4c0 4.7 3.2 8.3 7.6 9.8 4.4-1.5 7.6-5.1 7.6-9.8V6Z"/></svg>Packaging complet inclus</li>
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12h6l2-8 3 16 2-8h4"/></svg>Suivi privé instantané</li>
         </ul>
       </aside>
@@ -154,7 +165,7 @@
   <footer class="footer" style="margin-top:0">
     <div class="wrap">
       <div class="footer-bottom" style="margin-top:0;border-top:none">
-        <span>LEAKS Sunglasses — Drop 001</span>
+        <span>LEAKS Sunglasses — Drop 004</span>
         <span>Paiement PayDunya</span>
       </div>
     </div>

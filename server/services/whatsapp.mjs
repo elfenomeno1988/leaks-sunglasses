@@ -24,7 +24,7 @@ export function customerMessage(b) {
     `Référence ${b.reference}`,
     "",
     "Le studio vous appartient quarante-cinq minutes,",
-    "les sept signatures posées devant vous.",
+    "la collection posée devant vous.",
     "",
     "Un empêchement, une envie particulière ?",
     "Répondez à ce message — votre concierge vous lit."
@@ -61,28 +61,24 @@ export function bookingReminderMessage(b) {
     "",
     `Votre essayage privé vous attend à ${b.time} —`,
     "LEAKS Studio, Abidjan. Le studio est à vous,",
-    "quarante-cinq minutes, les sept signatures posées.",
+    "quarante-cinq minutes, la collection posée devant vous.",
     "",
     `Référence ${b.reference}. À tout à l'heure.`
   ].join("\n");
 }
 
 export function orderPaidMessage(o) {
-  const serial = o.serial_number
-    ? `Votre exemplaire : Nº ${String(o.serial_number).padStart(2, "0")}${o.edition_size ? ` / ${o.edition_size}` : ""}`
-    : null;
   return [
     "LEAKS ✦ Votre commande est confirmée.",
     "",
     `${o.product_name} — ${o.variant_name}`,
     `Référence ${o.reference}`,
-    serial,
     "",
     o.delivery_method === "pickup"
       ? "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle vous attend au studio."
       : "Nous préparons votre paire. Vous recevrez un message\ndès qu'elle part vers vous, à Abidjan.",
     "",
-    "Chaque paire est gravée de son numéro — la vôtre existe déjà."
+    "Votre packaging complet accompagne la commande."
   ].filter((l) => l !== null).join("\n");
 }
 
@@ -92,7 +88,7 @@ const ORDER_STATUS_LINES = {
     "",
     `${o.product_name} — ${o.variant_name} · ${o.reference}`,
     "",
-    "Elle est posée au studio, gravée à votre numéro.",
+    "Elle est prête au studio.",
     "LEAKS Studio — Abidjan · Lun – Sam · 10 h → 19 h.",
     "Présentez simplement ce message."
   ],

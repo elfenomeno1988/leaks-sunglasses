@@ -18,11 +18,12 @@
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
   const models = window.LEAKS_MODELS || [];
+  const accessories = window.LEAKS_ACCESSORIES || [];
   const money = (v) => `${new Intl.NumberFormat("fr-FR").format(v)} F`;
 
   /* ── WhatsApp générique ────────────────────────────────────── */
 
-  const waGeneric = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 001.`)}`;
+  const waGeneric = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 004.`)}`;
   $("#ah-wa").href = waGeneric;
   $("#st-wa").href = waGeneric;
 
@@ -70,19 +71,51 @@
   /* ── Collection : le fil ───────────────────────────────────── */
 
   const feed = $("#feed");
+  let currentTier = "";
   models.forEach((m, i) => {
+    if (m.tier !== currentTier) {
+      currentTier = m.tier;
+      const heading = document.createElement("h2");
+      heading.className = "feed-tier";
+      heading.textContent = m.tierLabel;
+      feed.appendChild(heading);
+    }
     const a = document.createElement("a");
     a.className = "f-card";
     a.href = `#/model/${m.id}`;
     a.innerHTML = `
       <span class="f-visual"><img src="${m.colors[0].image}" alt="LEAKS ${m.name}" ${i > 2 ? 'loading="lazy"' : ""}></span>
       <span class="f-meta">
-        <span><span class="f-name"><span class="idx">0${i + 1}</span>${m.name}</span>
+        <span><span class="f-name"><span class="idx">${String(i + 1).padStart(2, "0")}</span>LEAKS — ${m.name}</span>
         <span class="f-sub">${m.sku} · ${m.colors.length} coloris</span></span>
         <span class="f-price">${money(m.price)}</span>
       </span>`;
     feed.appendChild(a);
   });
+
+  if (accessories.length) {
+    const heading = document.createElement("h2");
+    heading.className = "feed-tier";
+    heading.textContent = "More LEAKS — Accessories";
+    feed.appendChild(heading);
+    accessories.forEach((item) => {
+      const a = document.createElement("a");
+      a.className = "f-card accessory-feed";
+      a.href = item.purchasable
+        ? `/checkout.html?product=${encodeURIComponent(item.id)}&variant=${encodeURIComponent(item.variantId)}`
+        : waGeneric;
+      if (!item.purchasable) {
+        a.target = "_blank";
+        a.rel = "noopener";
+      }
+      a.innerHTML = `
+        <span class="f-visual">${item.image
+          ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
+          : `<span class="accessory-fallback">LEAKS<br>Eyewear Case</span>`}</span>
+        <span class="f-meta"><span><span class="f-name">${item.name}</span><span class="f-sub">${item.description}</span></span><span class="f-price">${money(item.price)}</span></span>`;
+      feed.appendChild(a);
+    });
+  }
 
   /* ── Écran modèle : pager de vues + coloris ────────────────── */
 
@@ -111,7 +144,7 @@
     currentModel = m;
     currentColor = m.colors.find((c) => c.variantId === colorId) || m.colors[0];
 
-    $("#m-name").textContent = m.name;
+    $("#m-name").textContent = `LEAKS — ${m.name}`;
     $("#m-price").textContent = money(m.price);
     $("#m-desc").textContent = m.description;
     $("#m-sku").textContent = m.sku;

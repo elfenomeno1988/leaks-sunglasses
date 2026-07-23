@@ -1,8 +1,4 @@
-/* ════════════════════════════════════════════════════════════
-   LEAKS — Drop 001 · Variation épurée
-   Zéro dépendance. Révélations, compte à rebours,
-   essayage privé sur WhatsApp. Rien d'autre.
-   ════════════════════════════════════════════════════════════ */
+/* LEAKS — Drop 004 · accueil */
 
 const CONFIG = {
   brandName: "LEAKS",
@@ -13,23 +9,94 @@ const CONFIG = {
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const money = (value) => `${new Intl.NumberFormat("fr-FR").format(value)} F CFA`;
+const models = window.LEAKS_MODELS || [];
+const accessories = window.LEAKS_ACCESSORIES || [];
 
-/* ── Révélations ────────────────────────────────────────────── */
+function renderCatalog() {
+  const root = $("#catalog-groups");
+  if (!root) return;
+  const tiers = [
+    { id: "classic", label: "LEAKS Classic", note: "19 900 F CFA" },
+    { id: "premium", label: "LEAKS Premium", note: "24 900 F CFA" },
+    { id: "exclusive", label: "LEAKS Exclusive", note: "34 900 F CFA" }
+  ];
+  let position = 0;
+  root.innerHTML = tiers.map((tier) => {
+    const entries = models.filter((model) => model.tier === tier.id);
+    if (!entries.length) return "";
+    const cards = entries.map((model) => {
+      position += 1;
+      const first = model.colors[0];
+      const alternate = first.views?.[1]?.src || first.image;
+      const colorCount = `${model.colors.length} coloris`;
+      return `
+        <article class="card r">
+          <a class="card-detail" href="/gallery.html?product=${encodeURIComponent(model.id)}">
+            <span class="card-visual">
+              <img class="base" src="${first.image}" alt="LEAKS ${model.name} — ${first.label}, vue de face" loading="lazy">
+              <img class="alt" src="${alternate}" alt="" loading="lazy" aria-hidden="true">
+            </span>
+            <span class="card-row"><h3><span class="idx">${String(position).padStart(2, "0")}</span> LEAKS — ${model.name}</h3><span class="tag">${model.sku}</span></span>
+            <span class="card-sub"><span>${colorCount}</span><span class="price">${money(model.price)}</span></span>
+          </a>
+          <a class="card-buy" href="/checkout.html?product=${encodeURIComponent(model.id)}&amp;variant=${encodeURIComponent(first.variantId)}">Acheter directement</a>
+        </article>`;
+    }).join("");
+    return `
+      <section class="catalog-tier" aria-labelledby="tier-${tier.id}">
+        <header class="tier-head r">
+          <h3 id="tier-${tier.id}">${tier.label}</h3>
+          <span>${tier.note}</span>
+        </header>
+        <div class="grid">${cards}</div>
+      </section>`;
+  }).join("");
+}
 
-const io = new IntersectionObserver((entries) => {
-  entries.forEach((e) => {
-    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+function renderAccessories() {
+  const root = $("#accessories-grid");
+  if (!root) return;
+  root.innerHTML = accessories.map((item) => {
+    const action = item.purchasable
+      ? `<a class="card-buy" href="/checkout.html?product=${encodeURIComponent(item.id)}&amp;variant=${encodeURIComponent(item.variantId)}">Acheter directement</a>`
+      : `<a class="card-buy" data-wa href="#" target="_blank" rel="noopener">Écrire au concierge</a>`;
+    const visual = item.image
+      ? `<img src="${item.image}" alt="${item.name}" loading="lazy">`
+      : `<span class="accessory-placeholder">LEAKS<br>Eyewear Case</span>`;
+    return `
+      <article class="accessory-card r">
+        <div class="accessory-visual">${visual}</div>
+        <div class="card-row"><h3>${item.name}</h3><span class="price">${money(item.price)}</span></div>
+        <p>${item.description}</p>
+        ${action}
+      </article>`;
+  }).join("");
+}
+
+renderCatalog();
+renderAccessories();
+
+/* Révélations */
+const io = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("in");
+      io.unobserve(entry.target);
+    }
   });
-}, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+}, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }) : null;
 
-$$(".r").forEach((el, i) => {
-  if (reducedMotion) { el.classList.add("in"); return; }
-  el.style.transitionDelay = `${(i % 4) * 70}ms`;
-  io.observe(el);
+$$('.r').forEach((element, index) => {
+  if (reducedMotion || !io) {
+    element.classList.add("in");
+    return;
+  }
+  element.style.transitionDelay = `${(index % 4) * 70}ms`;
+  io.observe(element);
 });
 
-/* ── Compte à rebours ───────────────────────────────────────── */
-
+/* Compte à rebours */
 const dropTime = new Date(CONFIG.dropDate).getTime();
 const cd = { d: $("#cd-d"), h: $("#cd-h"), m: $("#cd-m"), s: $("#cd-s") };
 
@@ -40,12 +107,14 @@ function tick() {
   cd.m.textContent = String(Math.floor(diff / 6e4) % 60).padStart(2, "0");
   cd.s.textContent = String(Math.floor(diff / 1e3) % 60).padStart(2, "0");
 }
-if (cd.d) { tick(); setInterval(tick, 1000); }
+if (cd.d) {
+  tick();
+  setInterval(tick, 1000);
+}
 
-/* ── WhatsApp ───────────────────────────────────────────────── */
-
-const waGeneric = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 001.`)}`;
-$$("[data-wa]").forEach((a) => { a.href = waGeneric; });
+/* WhatsApp */
+const waGeneric = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(`Bonjour ${CONFIG.brandName}, j'aimerais des renseignements sur le Drop 004.`)}`;
+$$('[data-wa]').forEach((link) => { link.href = waGeneric; });
 
 const waFloat = $("#wa-float");
 if (waFloat) {
