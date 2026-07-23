@@ -244,7 +244,8 @@
   /* ── Réserver : trois gestes sur l'API bookings ────────────── */
 
   const rdv = {
-    date: "", time: "", name: "", phone: "", note: "",
+    date: "", time: "", name: "", phone: "", address: "", note: "",
+    latitude: null, longitude: null,
     reference: "", confirmationToken: "", confirmed: false,
     delivery: "handoff", handoffText: "",
     availability: new Map()
@@ -263,6 +264,7 @@
     $$("#rdv-steps span").forEach((s) => {
       s.classList.toggle("is-active", order.indexOf(s.dataset.dot) <= order.indexOf(name));
     });
+    if (name === "contact") window.setTimeout(ensureRdvMap, 0);
     window.scrollTo(0, 0);
   }
 
@@ -349,8 +351,52 @@
   toContact.addEventListener("click", () => rdvPanel("contact"));
   $("#back-moment").addEventListener("click", () => rdvPanel("moment"));
 
-  ["name", "phone", "note"].forEach((k) => {
+  ["name", "phone", "address", "note"].forEach((k) => {
     $(`#f-${k}`).addEventListener("input", (e) => { rdv[k] = e.target.value.trim(); });
+  });
+
+  let rdvMap = null;
+  let rdvMarker = null;
+
+  function setRdvLocation(latitude, longitude, label = "Lieu épinglé") {
+    rdv.latitude = Number(latitude.toFixed(6));
+    rdv.longitude = Number(longitude.toFixed(6));
+    const point = [rdv.latitude, rdv.longitude];
+    if (!rdvMarker) rdvMarker = window.L.marker(point).addTo(rdvMap);
+    else rdvMarker.setLatLng(point);
+    $("#m-location-status").textContent = label;
+  }
+
+  function ensureRdvMap() {
+    if (!window.L || !$("#m-rdv-map")) return;
+    if (!rdvMap) {
+      rdvMap = window.L.map("m-rdv-map", { scrollWheelZoom: false })
+        .setView([5.3484, -4.0278], 12);
+      window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
+      }).addTo(rdvMap);
+      rdvMap.on("click", ({ latlng }) => setRdvLocation(latlng.lat, latlng.lng));
+    }
+    rdvMap.invalidateSize();
+  }
+
+  $("#m-locate").addEventListener("click", () => {
+    const status = $("#m-location-status");
+    if (!navigator.geolocation) {
+      status.textContent = "Position indisponible";
+      return;
+    }
+    status.textContent = "Localisation…";
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        ensureRdvMap();
+        setRdvLocation(coords.latitude, coords.longitude, "Position ajoutée");
+        rdvMap.setView([coords.latitude, coords.longitude], 16);
+      },
+      () => { status.textContent = "Touchez la carte pour placer l’épingle"; },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
   });
 
   const normalizedPhone = () => {
@@ -375,6 +421,7 @@
     if (!rdv.date || !rdv.time) missing.push("votre créneau");
     if (rdv.name.length < 2) missing.push("votre nom");
     if (!normalizedPhone()) missing.push("un numéro WhatsApp international valide avec indicatif pays");
+    if (rdv.address.length < 8) missing.push("une adresse précise");
     if (missing.length) {
       errBox.hidden = false;
       errBox.textContent = `Il manque ${missing.join(", ")}.`;
@@ -389,7 +436,11 @@
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: rdv.date, time: rdv.time, name: rdv.name, phone: prettyPhone(), note: rdv.note })
+        body: JSON.stringify({
+          date: rdv.date, time: rdv.time, name: rdv.name, phone: prettyPhone(),
+          address: rdv.address, latitude: rdv.latitude, longitude: rdv.longitude,
+          note: rdv.note
+        })
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
@@ -438,6 +489,10 @@
       rdv.reference ? `· ${rdv.reference}` : null,
       `· ${frDate(rdv.date)} · ${rdv.time}`,
       `· ${rdv.name} — ${prettyPhone()}`,
+      `· Adresse : ${rdv.address}`,
+      rdv.latitude != null && rdv.longitude != null
+        ? `· Position : https://www.google.com/maps?q=${rdv.latitude},${rdv.longitude}`
+        : null,
       rdv.note ? `· Note : ${rdv.note}` : null,
       "",
       "Un créneau privé de quarante-cinq minutes.",
@@ -456,7 +511,7 @@
       `DTSTART:${dt}`,
       "DURATION:PT45M",
       `SUMMARY:Essayage privé LEAKS${rdv.reference ? ` — ${rdv.reference}` : ""}`,
-      "LOCATION:Abidjan — lieu communiqué sur WhatsApp",
+      `LOCATION:${rdv.address.replace(/([,;])/g, "\\$1")}`,
       "END:VEVENT", "END:VCALENDAR"
     ].join("\r\n");
   }
@@ -474,6 +529,7 @@
         : "Votre demande est prête. Envoyez-la — le concierge bloque le créneau à réception.";
     $("#t-ref").textContent = rdv.reference || "· · ·";
     $("#t-when").textContent = `${frDate(rdv.date)} · ${rdv.time}`;
+    $("#t-place").textContent = `${rdv.address} · 45 min · le concierge vient à vous`;
     $("#t-wa").textContent = automatic ? "Confirmer le RDV" : "Envoyer sur WhatsApp";
     $("#t-wa").dataset.mode = automatic ? "confirm" : "handoff";
     $("#t-wa").dataset.handoff = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMessage())}`;

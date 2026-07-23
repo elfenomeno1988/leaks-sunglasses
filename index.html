@@ -20,7 +20,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Michroma&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/epure.css?v=12">
+  <link rel="stylesheet" href="css/vendor/leaflet.css?v=1">
+  <link rel="stylesheet" href="css/epure.css?v=13">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -185,7 +186,7 @@
     <section class="section" id="rendez-vous">
       <header class="section-head r">
         <h2>L'essayage privé</h2>
-        <p class="note">06 — Un créneau privé de quarante-cinq minutes<br>Le lieu est communiqué lors de la confirmation WhatsApp.</p>
+        <p class="note">06 — Un créneau privé de quarante-cinq minutes<br>Votre concierge se déplace à l’adresse indiquée.</p>
       </header>
 
       <div class="xp r" id="xp">
@@ -220,6 +221,21 @@
               </div>
             </div>
             <p class="form-microcopy">Ajoutez l’indicatif de votre pays. La confirmation sera envoyée sur WhatsApp.</p>
+            <div class="field">
+              <label for="xp-address">Adresse de l’essayage</label>
+              <input type="text" id="xp-address" placeholder="Cocody Angré, Riviera 2, Marcory…" autocomplete="street-address" required>
+            </div>
+            <div class="location-card">
+              <div class="location-copy">
+                <strong>Épinglez le lieu exact</strong>
+                <span>Touchez la carte ou utilisez votre position.</span>
+              </div>
+              <div id="xp-map" class="booking-map" aria-label="Carte d’Abidjan pour préciser l’adresse"></div>
+              <div class="location-footer">
+                <button type="button" class="location-button" id="xp-locate">Utiliser ma position</button>
+                <span id="xp-location-status" role="status">Épingle facultative</span>
+              </div>
+            </div>
             <div class="field">
               <label for="xp-note">Un mot pour le concierge <small>(optionnel)</small></label>
               <textarea id="xp-note" rows="2" placeholder="Un coloris en tête, une occasion, une contrainte d'horaire…"></textarea>
@@ -262,9 +278,10 @@
             <div><dt>Date</dt><dd id="tk-date">—</dd></div>
             <div><dt>Heure</dt><dd id="tk-time">—</dd></div>
             <div><dt>Nom</dt><dd id="tk-name">—</dd></div>
+            <div><dt>Adresse</dt><dd id="tk-address">—</dd></div>
           </dl>
           <p class="ticket-status" id="tk-status">Composez votre rendez-vous —<br>la carte s'écrit avec vous.</p>
-          <p class="summary-place">Abidjan · 45 min<br>Lieu communiqué lors de la confirmation WhatsApp</p>
+          <p class="summary-place">Abidjan · 45 min<br>Le concierge vient à vous</p>
         </aside>
       </div>
     </section>
@@ -335,8 +352,9 @@
     </svg>
   </a>
 
+  <script src="js/vendor/leaflet.js?v=1"></script>
   <script src="js/catalog-data.js?v=11"></script>
   <script src="js/home.js?v=13"></script>
-  <script src="js/rdv.js?v=11"></script>
+  <script src="js/rdv.js?v=12"></script>
 </body>
 </html>

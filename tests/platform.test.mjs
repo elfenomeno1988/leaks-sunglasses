@@ -102,9 +102,21 @@ test("booking and checkout share E.164 WhatsApp normalization", () => {
   assert.equal(normalizeWhatsAppPhone("0700000000"), "2250700000000");
   assert.equal(normalizeWhatsAppPhone("+0123"), null);
   assert.equal(
-    bookingSchema.parse({ date: "2026-07-25", time: "10:00", name: "Maya", phone: "+44 7700 900123" }).phone,
+    bookingSchema.parse({
+      date: "2026-07-25", time: "10:00", name: "Maya",
+      phone: "+44 7700 900123", address: "Riviera 2, Abidjan"
+    }).phone,
     "447700900123"
   );
+  assert.equal(bookingSchema.safeParse({
+    date: "2026-07-25", time: "10:00", name: "Maya",
+    phone: "+44 7700 900123", address: "court"
+  }).success, false);
+  assert.equal(bookingSchema.safeParse({
+    date: "2026-07-25", time: "10:00", name: "Maya",
+    phone: "+44 7700 900123", address: "Riviera 2, Abidjan",
+    latitude: 5.358, longitude: -3.987
+  }).success, true);
 });
 
 test("orders cannot be created before the announced opening", async () => {

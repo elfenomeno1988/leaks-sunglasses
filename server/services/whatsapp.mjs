@@ -13,6 +13,9 @@ export const frDate = (iso) => {
 };
 
 const frAmount = (n) => `${new Intl.NumberFormat("fr-FR").format(n)} F`;
+const mapLink = (b) => b.latitude != null && b.longitude != null
+  ? `https://www.google.com/maps?q=${b.latitude},${b.longitude}`
+  : "";
 
 /* ── Copywriting — la voix LEAKS : brève, précise, au service ── */
 
@@ -24,7 +27,7 @@ export function customerMessage(b) {
     `Référence ${b.reference}`,
     "",
     "Votre créneau privé dure quarante-cinq minutes.",
-    "Le lieu vous est communiqué par votre concierge.",
+    `Adresse : ${b.address}`,
     "",
     "Un empêchement, une envie particulière ?",
     "Répondez à ce message — votre concierge vous lit."
@@ -37,6 +40,8 @@ export function conciergeAlert(b) {
     "",
     `${frDate(b.date)} · ${b.time}`,
     `${b.name} — ${b.phone}`,
+    `Adresse : ${b.address}`,
+    mapLink(b) ? `Itinéraire : ${mapLink(b)}` : null,
     b.note ? `Note : ${b.note}` : null,
     "",
     "Confirmer au client sous 15 minutes."
@@ -49,10 +54,11 @@ export function bookingConfirmedMessage(b) {
     "",
     `${frDate(b.date)} · ${b.time} — Abidjan`,
     `Référence ${b.reference}`,
+    b.address ? `Adresse : ${b.address}` : null,
     "",
     "Le concierge vous attend. Un empêchement ?",
     "Répondez simplement à ce message."
-  ].join("\n");
+  ].filter((line) => line !== null).join("\n");
 }
 
 export function bookingReminderMessage(b) {
@@ -157,9 +163,11 @@ export function handoffMessage(b) {
     "",
     "Ma carte de rendez-vous :",
     `· ${b.reference}`,
-    `· ${frDate(b.date)} · ${b.time}`,
-    `· ${b.name} — ${b.phone}`,
-    b.note ? `· Note : ${b.note}` : null,
+      `· ${frDate(b.date)} · ${b.time}`,
+      `· ${b.name} — ${b.phone}`,
+      `· Adresse : ${b.address}`,
+      mapLink(b) ? `· Position : ${mapLink(b)}` : null,
+      b.note ? `· Note : ${b.note}` : null,
     "",
     "Un créneau privé de quarante-cinq minutes.",
     "Un mot de votre concierge pour confirmer ?"

@@ -15,7 +15,8 @@
 
   const state = {
     date: "", time: "",
-    name: "", phone: "", note: "",
+    name: "", phone: "", address: "", note: "",
+    latitude: null, longitude: null,
     reference: "", offline: false,
     confirmationToken: "", confirmed: false,
     delivery: "handoff", handoffText: ""
@@ -53,6 +54,7 @@
       active.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
         { duration: 340, easing: "cubic-bezier(0.2,0.6,0.2,1)" });
     }
+    if (step === "contact") window.setTimeout(ensureMap, 0);
     root.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
   }
 
@@ -163,11 +165,58 @@
 
   const errBox = $("#xp-errors");
 
-  ["name", "phone", "note"].forEach((k) => {
+  ["name", "phone", "address", "note"].forEach((k) => {
     $(`#xp-${k}`).addEventListener("input", (e) => {
       state[k] = e.target.value.trim();
       ticket();
     });
+  });
+
+  /* Carte claire centrée sur Abidjan. L'adresse textuelle est obligatoire ;
+     l'épingle améliore l'itinéraire sans bloquer les clients qui refusent
+     la géolocalisation. */
+  let bookingMap = null;
+  let bookingMarker = null;
+
+  function setLocation(latitude, longitude, label = "Lieu épinglé") {
+    state.latitude = Number(latitude.toFixed(6));
+    state.longitude = Number(longitude.toFixed(6));
+    const point = [state.latitude, state.longitude];
+    if (!bookingMarker) bookingMarker = window.L.marker(point).addTo(bookingMap);
+    else bookingMarker.setLatLng(point);
+    $("#xp-location-status").textContent = label;
+  }
+
+  function ensureMap() {
+    if (!window.L || !$("#xp-map")) return;
+    if (!bookingMap) {
+      bookingMap = window.L.map("xp-map", { scrollWheelZoom: false })
+        .setView([5.3484, -4.0278], 12);
+      window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
+      }).addTo(bookingMap);
+      bookingMap.on("click", ({ latlng }) => setLocation(latlng.lat, latlng.lng));
+    }
+    bookingMap.invalidateSize();
+  }
+
+  $("#xp-locate").addEventListener("click", () => {
+    const status = $("#xp-location-status");
+    if (!navigator.geolocation) {
+      status.textContent = "Position indisponible";
+      return;
+    }
+    status.textContent = "Localisation…";
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        ensureMap();
+        setLocation(coords.latitude, coords.longitude, "Position ajoutée");
+        bookingMap.setView([coords.latitude, coords.longitude], 16);
+      },
+      () => { status.textContent = "Touchez la carte pour placer l’épingle"; },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
   });
 
   function normalizedPhone() {
@@ -189,6 +238,7 @@
     if (!state.date || !state.time) missing.push("votre créneau");
     if (state.name.length < 2) missing.push("votre nom");
     if (!normalizedPhone()) missing.push("un numéro WhatsApp international valide avec indicatif pays");
+    if (state.address.length < 8) missing.push("une adresse précise");
     return missing;
   }
 
@@ -215,6 +265,9 @@
         body: JSON.stringify({
           date: state.date, time: state.time,
           name: state.name, phone: prettyPhone(),
+          address: state.address,
+          latitude: state.latitude,
+          longitude: state.longitude,
           note: state.note
         })
       });
@@ -268,6 +321,10 @@
       state.reference ? `· ${state.reference}` : null,
       `· ${frDate(state.date)} · ${state.time}`,
       `· ${state.name} — ${prettyPhone()}`,
+      `· Adresse : ${state.address}`,
+      state.latitude != null && state.longitude != null
+        ? `· Position : https://www.google.com/maps?q=${state.latitude},${state.longitude}`
+        : null,
       state.note ? `· Note : ${state.note}` : null,
       "",
       "Un créneau privé de quarante-cinq minutes.",
@@ -288,8 +345,8 @@
       `DTSTART:${dt}`,
       "DURATION:PT45M",
       `SUMMARY:${esc(`Essayage privé LEAKS${state.reference ? ` — ${state.reference}` : ""}`)}`,
-      "LOCATION:Abidjan — lieu communiqué sur WhatsApp",
-      `DESCRIPTION:${esc("Essayage privé de 45 minutes. Lieu communiqué par le concierge sur WhatsApp : +" + CONFIG.whatsappNumber)}`,
+      `LOCATION:${esc(state.address)}`,
+      `DESCRIPTION:${esc("Essayage privé de 45 minutes. Votre concierge LEAKS se déplace à cette adresse.")}`,
       "END:VEVENT", "END:VCALENDAR"
     ].join("\r\n");
   }
@@ -356,6 +413,7 @@
       "",
       `${frDate(state.date)} · ${state.time} — Abidjan`,
       `Référence ${state.reference}`,
+      `Adresse : ${state.address}`,
       "",
       "Répondez à ce message — votre concierge vous lit."
     ].join("\n");
@@ -368,6 +426,7 @@
     $("#tk-date").textContent = state.date ? frDate(state.date) : "—";
     $("#tk-time").textContent = state.time || "—";
     $("#tk-name").textContent = state.name || "—";
+    $("#tk-address").textContent = state.address || "—";
     $("#tk-status").innerHTML = state.reference
       ? state.delivery === "queued" || state.delivery === "sent"
         ? "Créneau retenu.<br>Confirmation WhatsApp automatique."

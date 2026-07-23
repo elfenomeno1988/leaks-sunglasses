@@ -23,7 +23,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Michroma&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/mobile.css?v=13">
+  <link rel="stylesheet" href="/css/vendor/leaflet.css?v=1">
+  <link rel="stylesheet" href="/css/mobile.css?v=14">
 </head>
 <body>
 
@@ -140,6 +141,20 @@
           <small>Ajoutez l’indicatif de votre pays.</small>
         </label>
         <p class="hint">En réservant, vous demandez à recevoir la confirmation de ce rendez-vous sur WhatsApp.</p>
+        <label class="field">Adresse de l’essayage
+          <input type="text" id="f-address" placeholder="Cocody Angré, Riviera 2, Marcory…" autocomplete="street-address">
+        </label>
+        <div class="location-card">
+          <div class="location-copy">
+            <strong>Épinglez le lieu exact</strong>
+            <span>Touchez la carte ou utilisez votre position.</span>
+          </div>
+          <div id="m-rdv-map" class="booking-map" aria-label="Carte d’Abidjan pour préciser l’adresse"></div>
+          <div class="location-footer">
+            <button type="button" class="location-button" id="m-locate">Utiliser ma position</button>
+            <span id="m-location-status" role="status">Épingle facultative</span>
+          </div>
+        </div>
         <label class="field">Un mot pour le concierge <small>(optionnel)</small>
           <textarea id="f-note" rows="2" placeholder="Un coloris en tête, une occasion…"></textarea>
         </label>
@@ -157,7 +172,7 @@
           <span class="tag">Carte de rendez-vous</span>
           <p class="ticket-ref" id="t-ref">—</p>
           <p class="ticket-when" id="t-when">—</p>
-          <p class="ticket-place">Abidjan · 45 min · lieu communiqué sur WhatsApp</p>
+          <p class="ticket-place" id="t-place">Abidjan · 45 min · le concierge vient à vous</p>
         </div>
         <div class="sticky-cta two">
           <a class="btn btn-ghost" id="t-ics" href="#" download="leaks-essayage.ics">Calendrier</a>
@@ -211,7 +226,8 @@
     </a>
   </nav>
 
+  <script src="/js/vendor/leaflet.js?v=1"></script>
   <script src="/js/catalog-data.js?v=11"></script>
-  <script src="/js/mobile.js?v=15"></script>
+  <script src="/js/mobile.js?v=16"></script>
 </body>
 </html>

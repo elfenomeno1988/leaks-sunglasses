@@ -12,8 +12,19 @@ export const bookingSchema = z.object({
   phone: z.string().trim().transform(normalizeWhatsAppPhone)
     .refine(Boolean, "Numéro WhatsApp international invalide.")
     .transform(String),
+  address: z.string().trim().min(8, "Adresse trop courte.").max(300),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
   note: z.string().trim().max(500).optional().default(""),
   models: z.array(z.string().trim().min(1).max(40)).max(12).optional().default([])
+}).superRefine((values, ctx) => {
+  if ((values.latitude == null) !== (values.longitude == null)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["latitude"],
+      message: "La position doit contenir une latitude et une longitude."
+    });
+  }
 });
 
 export class BookingError extends Error {
@@ -65,10 +76,17 @@ export async function createBooking({ db, catalog, input }) {
     const reference = makeReference();
     try {
       const result = await db.query(
-        `insert into bookings (reference, booking_date, booking_time, customer_name, customer_phone, customer_note, models)
-         values ($1, $2, $3, $4, $5, $6, $7)
+        `insert into bookings (
+           reference, booking_date, booking_time, customer_name, customer_phone,
+           customer_note, customer_address, latitude, longitude, models
+         )
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          returning *`,
-        [reference, values.date, values.time, values.name, values.phone, values.note || null, JSON.stringify(models)]
+        [
+          reference, values.date, values.time, values.name, values.phone,
+          values.note || null, values.address, values.latitude ?? null,
+          values.longitude ?? null, JSON.stringify(models)
+        ]
       );
       return result.rows[0];
     } catch (error) {
@@ -114,6 +132,9 @@ export function publicBooking(row, { includeConfirmationToken = false } = {}) {
     date: row.booking_date instanceof Date ? row.booking_date.toISOString().slice(0, 10) : String(row.booking_date),
     time: row.booking_time,
     name: row.customer_name,
+    address: row.customer_address || "",
+    latitude: row.latitude == null ? null : Number(row.latitude),
+    longitude: row.longitude == null ? null : Number(row.longitude),
     models: row.models || [],
     status: row.status
   };

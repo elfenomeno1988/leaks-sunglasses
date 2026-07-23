@@ -108,6 +108,9 @@ export async function storefrontRoutes(app, deps) {
       time: row.booking_time,
       name: row.customer_name,
       phone: row.customer_phone,
+      address: row.customer_address,
+      latitude: row.latitude == null ? null : Number(row.latitude),
+      longitude: row.longitude == null ? null : Number(row.longitude),
       note: row.customer_note || ""
     };
     /* Un contrôle de statut Meta indisponible ne doit jamais renvoyer le
@@ -167,8 +170,12 @@ export async function storefrontRoutes(app, deps) {
     const alert = [
       `✦ Rendez-vous confirmé par le client — ${row.reference}`,
       `${row.customer_name} — ${row.customer_phone}`,
-      `${date} · ${row.booking_time}`
-    ].join("\n");
+      `${date} · ${row.booking_time}`,
+      `Adresse : ${row.customer_address}`,
+      row.latitude != null && row.longitude != null
+        ? `Itinéraire : https://www.google.com/maps?q=${row.latitude},${row.longitude}`
+        : null
+    ].filter((line) => line !== null).join("\n");
     await notify.enqueue(
       "booking-client-confirmed",
       config.WHATSAPP_CONCIERGE_NUMBER,
