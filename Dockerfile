@@ -8,7 +8,10 @@ FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY . .
+COPY --chown=node:node . .
+# Some VPS working copies may retain restrictive source-file permissions.
+# The runtime user must still be able to read the application after a release.
+RUN chmod -R a+rX /app
 EXPOSE 3000
 USER node
 
