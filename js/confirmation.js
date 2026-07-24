@@ -20,11 +20,15 @@ async function refresh() {
     if (!response.ok) throw new Error(data.error);
     const order = data.order;
     const paid = order.paymentStatus === "paid";
-    document.querySelector("#status-title").textContent = paid ? "Paiement confirmé." : order.paymentStatus === "cancelled" ? "Paiement annulé." : "Paiement en attente.";
+    const expired = order.paymentExpiresAt && Date.now() > new Date(order.paymentExpiresAt).getTime();
+    const failed = ["cancelled", "failed"].includes(order.paymentStatus) || expired;
+    document.querySelector("#status-title").textContent = paid ? "Paiement confirmé." : failed ? "Paiement non finalisé." : "Paiement en attente.";
     const manual = order.paymentMethod === "whatsapp_wave";
     document.querySelector("#status-copy").textContent = paid
       ? "Votre paire est réservée. Nous préparons maintenant votre commande."
-      : manual
+      : failed
+        ? "Aucun débit n’a été confirmé. Vous pouvez recommencer la commande."
+        : manual
         ? "Le concierge vérifie votre paiement et mettra ce suivi à jour."
         : "Le statut se mettra à jour automatiquement dès validation par le service de paiement.";
     document.querySelector("#status-product").textContent = `${order.product} × ${order.quantity}`;
@@ -32,9 +36,14 @@ async function refresh() {
     document.querySelector("#status-total").textContent = money(order.totalAmount);
     document.querySelector("#status-delivery").textContent = "Livraison Abidjan";
     document.querySelector("#status-details").hidden = false;
+    if (failed && order.productId && order.variantId) {
+      const retry = document.querySelector("#retry-link");
+      retry.href = `/checkout.html?product=${encodeURIComponent(order.productId)}&variant=${encodeURIComponent(order.variantId)}`;
+      retry.hidden = false;
+    }
     if (order.receiptUrl) { const link = document.querySelector("#receipt-link"); link.href = order.receiptUrl; link.hidden = false; }
     markProgress(order);
-    if (!paid && !["cancelled", "failed"].includes(order.paymentStatus)) setTimeout(refresh, 6000);
+    if (!paid && !failed) setTimeout(refresh, 6000);
   } catch (error) { renderError(error.message || "Commande introuvable."); }
 }
 

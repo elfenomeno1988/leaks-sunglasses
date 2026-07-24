@@ -446,7 +446,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.equal(catalogResponse.json().orderOpenAt, "2020-01-01T00:00:00Z");
   assert.deepEqual(catalogResponse.json().freeDeliveryTiers, ["exclusive"]);
   assert.equal(catalogResponse.json().deliveryFees.abidjan_delivery, 1000);
-  assert.deepEqual(catalogResponse.json().paymentMethods, ["wave", "mobile_money", "card", "whatsapp_wave"]);
+  assert.deepEqual(catalogResponse.json().paymentMethods, ["wave", "mobile_money", "card"]);
   const galleryRedirect = await app.inject({ method: "GET", url: "/gallery" });
   assert.equal(galleryRedirect.statusCode, 302);
   assert.equal(galleryRedirect.headers.location, "/gallery.html");
@@ -455,7 +455,7 @@ test("Fastify serves commerce pages and the public catalogue", async () => {
   assert.match(galleryResponse.body, /Un modèle, plusieurs coloris/);
   const checkoutResponse = await app.inject({ method: "GET", url: "/checkout.html" });
   assert.equal(checkoutResponse.statusCode, 200);
-  assert.match(checkoutResponse.body, /La paire,/);
+  assert.match(checkoutResponse.body, /Votre LEAKS/);
   const homeResponse = await app.inject({ method: "GET", url: "/" });
   assert.equal(homeResponse.statusCode, 200);
   assert.match(homeResponse.body, /LEAKS Sunglasses/);

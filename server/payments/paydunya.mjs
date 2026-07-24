@@ -23,8 +23,12 @@ export function createPayDunyaClient(config) {
     const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.response_code !== "00") {
-      const error = new Error(data.response_text || "Le service de paiement est temporairement indisponible.");
-      error.statusCode = 502;
+      const providerMessage = String(data.response_text || "");
+      const kycPending = /KYC|valider vos informations/i.test(providerMessage);
+      const error = new Error(kycPending
+        ? "Le paiement sécurisé est en cours d’activation. Réessayez un peu plus tard."
+        : "Le service de paiement est temporairement indisponible. Réessayez dans un instant.");
+      error.statusCode = 503;
       error.providerResponse = data;
       throw error;
     }
@@ -40,6 +44,17 @@ export function createPayDunyaClient(config) {
       return request(`${apiRoot}/checkout-invoice/create`, {
         method: "POST",
         body: JSON.stringify(payload)
+      }).then((data) => {
+        let checkout;
+        try { checkout = new URL(data.response_text); } catch { checkout = null; }
+        if (!checkout || checkout.protocol !== "https:"
+            || !/(^|\.)paydunya\.com$/i.test(checkout.hostname)) {
+          const error = new Error("Le lien de paiement reçu est invalide.");
+          error.statusCode = 502;
+          error.providerResponse = data;
+          throw error;
+        }
+        return data;
       });
     },
 

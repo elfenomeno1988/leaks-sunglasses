@@ -35,6 +35,7 @@ export async function storefrontRoutes(app, deps) {
        from orders
        where status <> 'cancelled'
          and payment_status not in ('failed', 'cancelled', 'refunded')
+         and (payment_status <> 'pending' or payment_expires_at > now())
        group by product_id, variant_id`
     );
     const reservedByVariant = new Map(inventory.rows.map((row) => [
@@ -68,7 +69,7 @@ export async function storefrontRoutes(app, deps) {
       deliveryFees: { abidjan_delivery: config.DELIVERY_ABIDJAN_FEE },
       freeDeliveryTiers: ["exclusive"],
       paymentMethods: config.paydunyaConfigured
-        ? ["wave", "mobile_money", "card", "whatsapp_wave"]
+        ? ["wave", "mobile_money", "card"]
         : ["whatsapp_wave"],
       products
     };

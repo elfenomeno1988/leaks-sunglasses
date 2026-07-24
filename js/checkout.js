@@ -7,7 +7,7 @@ const requestedVariant = params.get("variant") || "";
 let product;
 let deliveryFee = 1000;
 let freeDeliveryTiers = ["exclusive"];
-let paymentMethods = ["whatsapp_wave"];
+let paymentMethods = ["wave"];
 let orderOpenAt = "2026-07-24T00:00:00Z";
 let maxOrderQuantity = 2;
 
@@ -45,6 +45,7 @@ async function initialize() {
       const fallback = form.querySelector(`input[name="paymentMethod"][value="${paymentMethods[0]}"]`);
       if (fallback) fallback.checked = true;
     }
+    syncPaymentChoice();
     product = catalog.products.find((entry) => entry.id === productId) || catalog.products[0];
     if (product.tier === "accessory") {
       [...$("#quantity").options].forEach((option, index) => {
@@ -143,7 +144,29 @@ function updateSummary() {
   $("#address-wrap").hidden = false;
   form.elements.deliveryAddress.required = isDelivery;
   const manual = form.elements.paymentMethod.value === "whatsapp_wave";
-  submit.querySelector("span").textContent = manual ? "Continuer sur WhatsApp" : "Continuer vers le paiement";
+  submit.querySelector("span").textContent = manual ? "Contacter le concierge" : "Payer maintenant";
+  syncPaymentChoice();
+}
+
+const paymentCopy = {
+  wave: ["Paiement Wave sécurisé", "Vous serez redirigé vers PayDunya pour valider directement dans Wave. LEAKS ne reçoit jamais votre code secret."],
+  mobile_money: ["Mobile Money sécurisé", "Choisissez Orange Money, MTN, Moov ou Djamo sur la page PayDunya, puis validez sur votre téléphone."],
+  card: ["Carte bancaire sécurisée", "Le paiement Visa ou Mastercard est traité sur la page PayDunya. Vos données bancaires ne transitent pas par LEAKS."],
+  whatsapp_wave: ["Assistance du concierge", "Utilisez cette option uniquement si le paiement en ligne est indisponible. Le concierge vous accompagne sur WhatsApp."]
+};
+
+function syncPaymentChoice() {
+  const method = form.elements.paymentMethod?.value || paymentMethods[0];
+  document.querySelectorAll(".co-option").forEach((node) => {
+    const radio = node.querySelector('input[type="radio"]');
+    node.classList.toggle("is-selected", Boolean(radio?.checked));
+  });
+  const copy = paymentCopy[method] || paymentCopy.wave;
+  const note = $("#payment-note");
+  if (note) {
+    note.querySelector("strong").textContent = copy[0];
+    note.querySelector("span").textContent = copy[1];
+  }
 }
 
 function showError(message) {
@@ -167,7 +190,7 @@ form.addEventListener("submit", async (event) => {
   const values = Object.fromEntries(new FormData(form));
   const original = submit.innerHTML;
   submit.disabled = true;
-  submit.innerHTML = "<span>Création de la commande…</span>";
+  submit.innerHTML = "<span>Préparation du paiement sécurisé…</span>";
   try {
     const result = await api("/api/orders", {
       method: "POST",
@@ -175,7 +198,7 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify({ ...values, productId: product.id, quantity: Number(values.quantity) })
     });
     sessionStorage.setItem("leaks:last-order", JSON.stringify({ reference: result.order.reference, tracking: result.trackingToken }));
-    location.href = result.redirectUrl;
+    location.assign(result.redirectUrl);
   } catch (error) {
     showError(error.message);
     submit.innerHTML = original;

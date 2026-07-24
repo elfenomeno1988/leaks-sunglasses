@@ -44,6 +44,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
   const trackingToken = randomUUID();
   const phone = values.customerPhone;
   const manual = values.paymentMethod === "whatsapp_wave";
+  const paymentExpiresAt = new Date(Date.now() + (manual ? 24 * 60 : 30) * 60_000);
 
   if (!manual && !config.paydunyaConfigured) {
     throw Object.assign(
@@ -64,6 +65,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
         coalesce(sum(o.quantity) filter (
           where o.status <> 'cancelled'
             and o.payment_status not in ('failed', 'cancelled', 'refunded')
+            and (o.payment_status <> 'pending' or o.payment_expires_at > now())
         ), 0)::integer as reserved
       from inventory_lock
       left join orders o on o.product_id=$5 and o.variant_id=$8
@@ -73,9 +75,10 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
       reference, tracking_token, payment_method, payment_provider,
       product_id, product_sku, product_name, variant_id, variant_name,
       unit_price, quantity, delivery_method, delivery_fee, total_amount,
-      customer_name, customer_email, customer_phone, delivery_address, customer_note, edition_size
+      customer_name, customer_email, customer_phone, delivery_address, customer_note,
+      edition_size, payment_expires_at
     )
-    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
     from availability
     where edition_size is null or reserved + $11 <= edition_size
     returning *`,
@@ -84,7 +87,7 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
       line.product.id, line.product.sku, line.product.name, line.variant.id, line.variant.name,
       line.product.price, line.quantity, values.deliveryMethod, deliveryFee, totalAmount,
       values.customerName, values.customerEmail, phone, values.deliveryAddress || null, values.customerNote || null,
-      line.editionSize
+      line.editionSize, paymentExpiresAt
     ]
   );
   const order = inserted.rows[0];
@@ -154,7 +157,9 @@ export async function createOrder({ db, catalog, config, paydunya, input }) {
     return { order: updated.rows[0], trackingToken, redirectUrl: provider.response_text, manual: false };
   } catch (error) {
     await db.query(
-      `update orders set payment_status='manual_review', provider_response=$1 where id=$2`,
+      `update orders
+       set payment_status='failed', status='cancelled', provider_response=$1
+       where id=$2`,
       [error.providerResponse || { message: error.message }, order.id]
     );
     throw error;
@@ -173,6 +178,9 @@ export function publicOrder(order) {
     totalAmount: order.total_amount,
     currency: order.currency,
     deliveryMethod: order.delivery_method,
+    productId: order.product_id,
+    variantId: order.variant_id,
+    paymentExpiresAt: order.payment_expires_at,
     createdAt: order.created_at,
     receiptUrl: order.receipt_url
   };

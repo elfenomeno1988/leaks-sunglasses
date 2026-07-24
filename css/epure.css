@@ -1249,6 +1249,36 @@ details[open] .faq-x { transform: rotate(45deg); }
   text-transform: uppercase;
 }
 
+.co-progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+  margin-top: 24px;
+  border-top: 1px solid var(--hairline-strong);
+}
+.co-progress li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 11px;
+  color: var(--mute);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.co-progress span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 50%;
+  font-variant-numeric: tabular-nums;
+}
+.co-progress .is-active { color: var(--ink); }
+.co-progress .is-active span { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+
 .co-shell {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(320px, 5fr);
@@ -1346,7 +1376,8 @@ details[open] .faq-x { transform: rotate(45deg); }
   text-transform: none;
 }
 .co-option:hover { border-color: var(--ink); }
-.co-option:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.co-option:has(input:checked),
+.co-option.is-selected { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .co-option input { position: absolute; opacity: 0; pointer-events: none; }
 
 .co-option svg { width: 21px; height: 21px; flex: none; stroke: var(--ink); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -1372,6 +1403,29 @@ details[open] .faq-x { transform: rotate(45deg); }
   color: var(--mute);
 }
 .co-worldwide a { color: var(--ink); border-bottom: 1px solid var(--ink); }
+
+.co-payment-note {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--ink);
+  background: #f5f4f0;
+}
+.co-payment-note strong { font-size: 12.5px; }
+.co-payment-note span { color: var(--mute); font-size: 12.5px; line-height: 1.55; }
+
+.co-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -8px 0 18px;
+  color: var(--mute);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.co-consent input { width: 16px; height: 16px; margin-top: 1px; accent-color: var(--ink); flex: none; }
+.co-consent a { color: var(--ink); border-bottom: 1px solid var(--hairline-strong); }
 
 /* Récapitulatif */
 
